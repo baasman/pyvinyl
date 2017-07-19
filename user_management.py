@@ -7,16 +7,16 @@ from wtforms.validators import DataRequired, Email, EqualTo
 from app import mongo
 
 class User():
-    def __init__(self, username, email=None, unhashed_password=None,
+    def __init__(self, username, email=None,
                  discogs_user=None):
         self.username = username
         self.email = email
         self.discogs_user = discogs_user
-        # self.unhashed_password = unhashed_password
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
+    @property
     def is_authenticated(self):
         return True
 
@@ -54,9 +54,13 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    user = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired])
     submit = SubmitField('Login')
+
+
+class DiscogsForm(FlaskForm):
+    code = StringField('Code given by discogs', validators=[DataRequired])
 
 
 

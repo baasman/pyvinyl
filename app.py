@@ -3,20 +3,27 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_pymongo import PyMongo
 
+import discogs_client
+
 import config
 
 login_manager = LoginManager()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, instance_relative_config=True)
     login_manager.init_app(app)
     login_manager.login_message = 'You must be logged in Nerd'
     login_manager.login_view = 'login'
     Bootstrap(app)
     app.config.from_object(config.DevelopmentConfig)
+    app.config.from_pyfile('config.py')
     return app
 
 app = create_app()
 mongo = PyMongo(app)
+
+user_agent = 'discogs_pyvy/1.0'
+dclient = discogs_client.Client(user_agent)
+dclient.set_consumer_key(app.config['DISCOGS_CONSUMER_KEY'], app.config['DISCOGS_CONSUMER_SECRET'])
 
 import views

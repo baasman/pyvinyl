@@ -1,4 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-    <h3>Hi {{ username }}</h3>
+    <h2>Welcome {{ user['user'] }}</h2>
+    {% if user.access_token %}
+        <h3>Peruse you collection here</h3>
+    {% else %}
+        <p>It looks like you haven't been authenticated yet with Discogs</p>
+        <a href="{{ url_for('discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">
+            Get started with Discogs</a>
+    {% endif %}
 {% endblock %}
