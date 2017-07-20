@@ -1,10 +1,12 @@
 from app import *
 from user_management import User
 from forms import LoginForm, RegistrationForm, DiscogsValidationForm, AddRecordForm
+from tables import CollectionTable, CollectionItem
 
 from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
 
+import discogs_client
 import sys
 
 
@@ -44,7 +46,7 @@ def register():
                                           'email': user_obj.email,
                                           'password_hash': user_obj.password_hash,
                                            'discogs_user': user_obj.discogs_user,
-                                           'records': [323],
+                                           'records': [],
                                            'discogs_info': {'oath_token': None,
                                                             'token': None,
                                                             'secret': None}})
@@ -66,8 +68,19 @@ def logout():
 @login_required
 def collection(username):
     user = mongo.db.users.find_one({'user': username})
+    all_record_ids = user['records']
+    if len(all_record_ids) > 0:
+        records = mongo.db.records.find({'_id': {'$in': all_record_ids}})
+        items = []
+        for record in records:
+            items.append(CollectionItem(record['title'],
+                                        record['artists'][0],
+                                        record['year']))
+        table = CollectionTable(items)
+    else:
+        table = None
     return render_template('collection.html', username=username, user=user,
-                           client=dclient)
+                           client=dclient, table=table)
 
 @app.route('/discogs_setup/<username>', methods=['GET', 'POST'])
 @login_required
@@ -91,29 +104,33 @@ def discogs_setup(username):
 def add_record():
     args = dict(request.args)
     username = args['username'][0]
+    user = mongo.db.users.find_one({'user': username})
     form = AddRecordForm()
     if request.method == 'POST':
         discogs_id = int(form.discogs_id.data)
         if mongo.db.users.find_one({'user': username,
                                     'records': {'$in': [discogs_id]}}) is not None:
             flash('Album already in collection')
-            # TODO: returns not found right now
-            return redirect(render_template('collection.html',
-                                            username=username,
-                                            user=mongo.db.users.find_one({'user': username})))
+            return redirect(url_for('collection', username=username, user=user))
         else:
             n = mongo.db.users.update({'user': username}, {'$addToSet': {'records': discogs_id}})
             record = mongo.db.records.find_one({'_id': discogs_id})
             if record is None:
                 album = dclient.release(discogs_id)
                 try:
+                    tracklist = album.tracklist
+                    artists = album.artists
+                except discogs_client.exceptions.HTTPError:
+                    flash('Could not find release on discogs. Double check the release id')
+                    return redirect(url_for('add_record', username=username))
+                try:
                     n = mongo.db.records.insert_one({'_id': discogs_id,
-                                                 'year': int(album.year),
-                                                 'title': album.title,
-                                                 'artists': [i.name for i in album.artists]})
+                                                     'year': int(album.year),
+                                                     'title': album.title,
+                                                     'artists': [i.name for i in artists],
+                                                     'tracks': [i.title for i in tracklist]})
                 except:
                     print(sys.exc_info()[:2])
-                print(n)
             return redirect(url_for('collection', username=username,
                                     user=mongo.db.users.find_one({'user': username})))
 

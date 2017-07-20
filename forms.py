@@ -1,7 +1,7 @@
 from app import mongo
 
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField, ValidationError
+from wtforms import PasswordField, DecimalField, StringField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Email, EqualTo
 
 
@@ -36,5 +36,5 @@ class DiscogsValidationForm(FlaskForm):
 
 
 class AddRecordForm(FlaskForm):
-    discogs_id = StringField('Discogs record id', validators=[DataRequired])
+    discogs_id = DecimalField('Discogs record id', validators=[DataRequired])
     submit = SubmitField('Submit')

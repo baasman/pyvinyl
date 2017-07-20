@@ -13,12 +13,13 @@
 
 {% block collection_info %}
     {% if user['records'] %}
-        {% for record in user['records'] %}
-            <ul class="records">
-                <br/>
-                <li class="record_list">{{ record }}</li>
-            </ul>
-        {% endfor %}
+{#        {% for record in user['records'] %}#}
+{#            <ul class="records">#}
+{#                <br/>#}
+{#                <li class="record_list">{{ record }}</li>#}
+{#            </ul>#}
+{#        {% endfor %}#}
+        {{ table }}
     {% else %}
         <p>You have not added any records yet</p>
     {% endif %}
