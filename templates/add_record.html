@@ -1,17 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-    <p>A key has been created for you</p>
-    <a href="{{ url }}" target="_blank">Click here to authenticate, then enter the key value below</a>
-
+    <h2>add a record here</h2>
     {% import "bootstrap/wtf.html" as wtf %}
     <div class="content-section">
         <div class="center">
-            <h2>Discogs Key</h2>
-          <br/>
             {{ wtf.quick_form(form) }}
         </div>
     </div>
 
     <form action="" method="post" name="form"></form>
 {% endblock %}
-

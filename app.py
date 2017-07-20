@@ -4,6 +4,7 @@ from flask_bootstrap import Bootstrap
 from flask_pymongo import PyMongo
 
 import discogs_client
+import pylast
 
 import config
 
@@ -25,5 +26,8 @@ mongo = PyMongo(app)
 user_agent = 'discogs_pyvy/1.0'
 dclient = discogs_client.Client(user_agent)
 dclient.set_consumer_key(app.config['DISCOGS_CONSUMER_KEY'], app.config['DISCOGS_CONSUMER_SECRET'])
+
+lastfm_client = pylast.LastFMNetwork(api_key=app.config['LASTFM_API_KEY'],
+                                     api_secret=app.config['LASTFM_API_SECRET'])
 
 import views

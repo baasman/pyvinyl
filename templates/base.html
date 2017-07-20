@@ -5,7 +5,7 @@
     <title>Record Scrobbler</title>
 
     <style>
-        ul{
+        ul.navigation{
             list-style-type: none;
             margin: 0;
             padding: 0;
@@ -31,11 +31,26 @@
         .flashes li {
             color: coral;
         }
+
+
     </style>
 
 
 </head>
 <body>
+
+<ul class="navigation">
+    <li><a href="{{ url_for('home') }}">Home</a></li>
+    <li><a href="{{ url_for('about') }}">About</a></li>
+    {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('collection', username=current_user.username) }}">Collection</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        <li><a href="{{ url_for('add_record', username=current_user.username) }}">Add Record</a></li>
+    {% else %}
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+        <li><a href="{{ url_for('register') }}">Register</a></li>
+    {% endif %}
+</ul>
 {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class=flashes>
@@ -46,19 +61,10 @@
     {% endif %}
 {% endwith %}
 
-<ul>
-        <li><a href="{{ url_for('home') }}">Home</a></li>
-        <li><a href="{{ url_for('about') }}">About</a></li>
-        {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
-        {% else %}
-            <li><a href="{{ url_for('login') }}">Login</a></li>
-            <li><a href="{{ url_for('register') }}">Register</a></li>
-        {% endif %}
-    </ul>
-
 
     {% block content %} {% endblock %}
+
+    {% block collection_info %} {% endblock %}
 
 
 </body>

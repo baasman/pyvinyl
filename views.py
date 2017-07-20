@@ -1,5 +1,6 @@
 from app import *
-from user_management import LoginForm, RegistrationForm, DiscogsForm, User
+from user_management import User
+from forms import LoginForm, RegistrationForm, DiscogsValidationForm, AddRecordForm
 
 from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
@@ -43,7 +44,10 @@ def register():
                                           'email': user_obj.email,
                                           'password_hash': user_obj.password_hash,
                                            'discogs_user': user_obj.discogs_user,
-                                           'records': []})
+                                           'records': [323],
+                                           'discogs_info': {'oath_token': None,
+                                                            'token': None,
+                                                            'secret': None}})
             login_user(user_obj)
             flash('Thanks for registering')
             return redirect(url_for('collection', username=user_obj.username))
@@ -62,11 +66,11 @@ def logout():
 @login_required
 def collection(username):
     user = mongo.db.users.find_one({'user': username})
-
     return render_template('collection.html', username=username, user=user,
                            client=dclient)
 
-@app.route('/discogs_setup/<username>')
+@app.route('/discogs_setup/<username>', methods=['GET', 'POST'])
+@login_required
 def discogs_setup(username):
     args = dict(request.args)
     token, secret, url = args['tokens']
@@ -74,11 +78,48 @@ def discogs_setup(username):
                               {'$set': {'discogs_info':
                                             {'token': token,
                                             'secret': secret}}})
-    print(url)
-    return render_template('discogs_signup.html', url=url)
-    # dform = DiscogsForm()
-    # user = mongo.db.users.find_one({'user': username})
-    # token, secret, url = dclient.get_authorize_url()
+    form = DiscogsValidationForm()
+    if request.method == 'POST':
+        oath_code = form.code.data
+        n = mongo.db.users.update({'user': username},
+                                  {'$set': {'discogs_info.oauth_code': oath_code}})
+        return redirect(url_for('collection', username=username))
+    return render_template('discogs_signup.html', url=url, form=form)
+
+@app.route('/add_record/', methods=['GET', 'POST'])
+@login_required
+def add_record():
+    args = dict(request.args)
+    username = args['username'][0]
+    form = AddRecordForm()
+    if request.method == 'POST':
+        discogs_id = int(form.discogs_id.data)
+        if mongo.db.users.find_one({'user': username,
+                                    'records': {'$in': [discogs_id]}}) is not None:
+            flash('Album already in collection')
+            # TODO: returns not found right now
+            return redirect(render_template('collection.html',
+                                            username=username,
+                                            user=mongo.db.users.find_one({'user': username})))
+        else:
+            n = mongo.db.users.update({'user': username}, {'$addToSet': {'records': discogs_id}})
+            record = mongo.db.records.find_one({'_id': discogs_id})
+            if record is None:
+                album = dclient.release(discogs_id)
+                try:
+                    n = mongo.db.records.insert_one({'_id': discogs_id,
+                                                 'year': int(album.year),
+                                                 'title': album.title,
+                                                 'artists': [i.name for i in album.artists]})
+                except:
+                    print(sys.exc_info()[:2])
+                print(n)
+            return redirect(url_for('collection', username=username,
+                                    user=mongo.db.users.find_one({'user': username})))
+
+
+
+    return render_template('add_record.html', form=form)
 
 
 @app.route('/')

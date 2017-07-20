@@ -1,10 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField, ValidationError
-from wtforms.validators import DataRequired, Email, EqualTo
-
-from app import mongo
 
 class User():
     def __init__(self, username, email=None,
@@ -32,35 +27,3 @@ class User():
     @staticmethod
     def validate_login(password_hash, password):
         return check_password_hash(password_hash, password)
-
-
-class RegistrationForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    username = StringField('Username', validators=[DataRequired()])
-    discogs_user = StringField('Discogs username')
-    password = PasswordField('Password', validators=[DataRequired(),
-                                                     EqualTo('confirm_password',
-                                                             message='Passwords must match')])
-    confirm_password = PasswordField('Confirm Password')
-    submit = SubmitField('Register')
-
-    def validate_email(self, field):
-        if mongo.db.users.find_one({'email': field.data}) is not None:
-            raise ValidationError('Email already in use')
-
-    def validate_username(self, field):
-        if mongo.db.users.find_one({'user': field.data}) is not None:
-            raise ValidationError('Username already in use')
-
-
-class LoginForm(FlaskForm):
-    user = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired])
-    submit = SubmitField('Login')
-
-
-class DiscogsForm(FlaskForm):
-    code = StringField('Code given by discogs', validators=[DataRequired])
-
-
-
