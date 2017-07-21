@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{% block style %}
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table, th, td {
+            border: 1px solid black;
+            text-align: left;
+        }
+
+    </style>
+{% endblock %}
 {% block content %}
     {% if user['discogs_info']['oauth_code'] %}
         <h3>Peruse you collection here</h3>
@@ -13,13 +26,7 @@
 
 {% block collection_info %}
     {% if user['records'] %}
-{#        {% for record in user['records'] %}#}
-{#            <ul class="records">#}
-{#                <br/>#}
-{#                <li class="record_list">{{ record }}</li>#}
-{#            </ul>#}
-{#        {% endfor %}#}
-        {{ table }}
+            {{ table }}
     {% else %}
         <p>You have not added any records yet</p>
     {% endif %}

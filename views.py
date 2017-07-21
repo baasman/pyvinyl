@@ -7,7 +7,9 @@ from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
 
 import discogs_client
+
 import sys
+import datetime
 
 
 @login_manager.user_loader
@@ -32,6 +34,7 @@ def login():
         else:
             flash('Password does not match username', category='error')
     return render_template('login.html', form=form)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -68,15 +71,24 @@ def logout():
 @login_required
 def collection(username):
     user = mongo.db.users.find_one({'user': username})
-    all_record_ids = user['records']
-    if len(all_record_ids) > 0:
-        records = mongo.db.records.find({'_id': {'$in': all_record_ids}})
+    all_records = user['records']
+    record_dict = {i['id']: [i['count'], i['date_added']] for i in all_records}
+    print(record_dict)
+    if len(record_dict) > 0:
+        records = mongo.db.records.find({'_id': {'$in': list(record_dict.keys())}})
         items = []
         for record in records:
+            date = record_dict[record['_id']][1]
+
             items.append(CollectionItem(record['title'],
                                         record['artists'][0],
-                                        record['year']))
+                                        record['year'],
+                                        ', '.join(record['styles']),
+                                        ', '.join(record['genres']),
+                                        record_dict[record['_id']][0],
+                                        date))
         table = CollectionTable(items)
+        print(table.__html__())
     else:
         table = None
     return render_template('collection.html', username=username, user=user,
@@ -113,13 +125,18 @@ def add_record():
             flash('Album already in collection')
             return redirect(url_for('collection', username=username, user=user))
         else:
-            n = mongo.db.users.update({'user': username}, {'$addToSet': {'records': discogs_id}})
+            n = mongo.db.users.update({'user': username}, {'$addToSet': {'records':
+                                                                             {'id': discogs_id,
+                                                                              'count': 0,
+                                                                              'date_added': datetime.datetime.now()}}})
             record = mongo.db.records.find_one({'_id': discogs_id})
             if record is None:
                 album = dclient.release(discogs_id)
                 try:
                     tracklist = album.tracklist
                     artists = album.artists
+                    genres = album.genres
+                    styles = album.styles
                 except discogs_client.exceptions.HTTPError:
                     flash('Could not find release on discogs. Double check the release id')
                     return redirect(url_for('add_record', username=username))
@@ -128,7 +145,9 @@ def add_record():
                                                      'year': int(album.year),
                                                      'title': album.title,
                                                      'artists': [i.name for i in artists],
-                                                     'tracks': [i.title for i in tracklist]})
+                                                     'tracks': [i.title for i in tracklist],
+                                                     'genres': genres,
+                                                     'styles': styles})
                 except:
                     print(sys.exc_info()[:2])
             return redirect(url_for('collection', username=username,
