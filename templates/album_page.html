@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block style %}
+    <style>
+        #tracklist ol {
+            float: left;
+            display: inline-block;
+        }
+
+    </style>
+
+{% endblock %}
+{% block content %}
+    <h1>{{ record.title }}</h1>
+    <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
+    <p>Tracklist</p>
+    <ol id="tracklist">
+        {% for track in record.tracks %}
+            <li>{{ track }}</li>
+            </br>
+        {% endfor %}
+    </ol>
+
+{% endblock %}

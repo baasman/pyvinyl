@@ -14,7 +14,7 @@
 {% endblock %}
 {% block content %}
     {% if user['discogs_info']['oauth_code'] %}
-        <h3>Peruse you collection here</h3>
+        </br>
     {% else %}
         <p>It looks like you haven't been authenticated yet with Discogs. This will allow this app to generate
             some cool statistics for you</p>
@@ -26,7 +26,9 @@
 
 {% block collection_info %}
     {% if user['records'] %}
+        <div style="overflow-x:auto;">
             {{ table }}
+        </div>
     {% else %}
         <p>You have not added any records yet</p>
     {% endif %}
