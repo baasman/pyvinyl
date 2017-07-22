@@ -12,7 +12,7 @@
     <li><a href="{{ url_for('about') }}">About</a></li>
     {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('collection', username=current_user.username) }}">Collection</a></li>
-        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        <li><a href="{{ url_for('logout', username=current_user.username) }}">Logout</a></li>
         <li><a href="{{ url_for('add_record', username=current_user.username) }}">Add Record</a></li>
     {% else %}
         <li><a href="{{ url_for('login') }}">Login</a></li>

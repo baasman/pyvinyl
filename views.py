@@ -1,8 +1,9 @@
-from app import *
+from app import app, mongo, dclient, login_manager
 from user_management import User
-from forms import LoginForm, RegistrationForm, DiscogsValidationForm, AddRecordForm
-from tables import CollectionTable, CollectionItem
-from flask import request, redirect, render_template, flash, url_for, send_from_directory
+from forms.user_forms import LoginForm, RegistrationForm
+from forms.misc_forms import DiscogsValidationForm, AddRecordForm
+from tables.collection_table import CollectionTable, CollectionItem
+from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
 
 import discogs_client
@@ -47,7 +48,8 @@ def collection(username):
                                         ', '.join(record['genres']),
                                         record_dict[record['_id']][0],
                                         date,
-                                        record['_id']))
+                                        record['_id'],
+                                        username))
         table = CollectionTable(items)
     else:
         table = None
@@ -123,14 +125,18 @@ def add_record():
     return render_template('add_record.html', form=form)
 
 
-@app.route('/album/<int:album_id>')
-def album_page(album_id):
+@app.route('/user/<string:username>/album/<int:album_id>')
+def album_page(username, album_id):
     record = mongo.db.records.find_one({'_id': album_id})
     image_binary = record['image_binary']
     filename = 'temp_image%d.jpeg' % album_id
     upload_filename = os.path.join(app.static_folder, 'tmp', filename)
-    with open(upload_filename, 'wb') as f:
-        f.write(image_binary)
+    if not os.path.exists(upload_filename):
+        print('File does not exist. Creating temporary file...')
+        with open(upload_filename, 'wb') as f:
+            f.write(image_binary)
+            n = mongo.db.users.update({'user': username},
+                                      {'$push': {'tmp_files': filename}})
     return render_template('album_page.html', record=record, filename=filename)
 
 
@@ -173,6 +179,7 @@ def register():
                                           'password_hash': user_obj.password_hash,
                                            'discogs_user': user_obj.discogs_user,
                                            'records': [],
+                                           'tmp_files': [],
                                            'discogs_info': {'oath_token': None,
                                                             'token': None,
                                                             'secret': None}})
@@ -186,5 +193,14 @@ def register():
 
 @app.route('/logout')
 def logout():
+    username = request.args.get('username')
+    tmp_files = mongo.db.users.find_one({'user': username}, {'tmp_files': 1})
+    for file in tmp_files['tmp_files']:
+        try:
+            os.remove(os.path.join(app.static_folder, 'tmp', file))
+        except:
+            print(sys.exc_info()[:2])
+    n = mongo.db.users.update({'user': username},
+                              {'$set': {'tmp_files': []}})
     logout_user()
     return redirect(url_for('home'))
