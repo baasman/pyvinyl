@@ -1,12 +1,14 @@
 from werkzeug.security import generate_password_hash, check_password_hash
+import pylast
 
 
 class User():
     def __init__(self, username, email=None,
-                 discogs_user=None):
+                 lastfm_user=None, lastfm_password=None):
         self.username = username
         self.email = email
-        self.discogs_user = discogs_user
+        self.lastfm_user = lastfm_user
+        self.lastfm_password = pylast.md5(lastfm_password)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

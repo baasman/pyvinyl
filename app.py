@@ -18,9 +18,6 @@ def create_app():
     Bootstrap(app)
     app.config.from_object(config.DevelopmentConfig)
     app.config.from_pyfile('config.py')
-
-    TMP_UPLOAD_FOLDER = '/Users/baasman/PycharmProjects/pyvinyl/static/tmp/'
-    app.config['TMP_UPLOAD_FOLDER'] = TMP_UPLOAD_FOLDER
     return app
 
 app = create_app()

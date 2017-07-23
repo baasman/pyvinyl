@@ -8,13 +8,13 @@ from flask_login import login_user, logout_user, login_required
 
 import discogs_client
 from bson import Binary
+import pylast
 
 import sys
 import datetime
 import requests
-import io
 import os
-from PIL import Image
+import time
 
 
 @login_manager.user_loader
@@ -125,8 +125,9 @@ def add_record():
     return render_template('add_record.html', form=form)
 
 
-@app.route('/user/<string:username>/album/<int:album_id>')
+@app.route('/user/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
 def album_page(username, album_id):
+    user = mongo.db.users.find_one({'user': username}, {'lastfm_password': 1})
     record = mongo.db.records.find_one({'_id': album_id})
     image_binary = record['image_binary']
     filename = 'temp_image%d.jpeg' % album_id
@@ -137,6 +138,17 @@ def album_page(username, album_id):
             f.write(image_binary)
             n = mongo.db.users.update({'user': username},
                                       {'$push': {'tmp_files': filename}})
+    if request.method == 'POST':
+        try:
+            lastfm_client = pylast.LastFMNetwork(api_key=app.config['LASTFM_API_KEY'],
+                                                 api_secret=app.config['LASTFM_API_SECRET'],
+                                                 username=username, password_hash=user['lastfm_password'])
+            artist = record['artists'][0]
+            for track in record['tracks']:
+                lastfm_client.scrobble(artist=artist, title=track, timestamp=time.time())
+        except:
+            print(sys.exc_info()[:2])
+        return render_template('album_page.html', record=record, filename=filename)
     return render_template('album_page.html', record=record, filename=filename)
 
 
@@ -171,13 +183,15 @@ def register():
     if request.method == 'POST' and reg_form.validate_on_submit():
         user_obj = User(email=reg_form.email.data,
                         username=reg_form.username.data,
-                        discogs_user=reg_form.discogs_user.data)
+                        lastfm_user=reg_form.lastfm_user.data,
+                        lastfm_password=reg_form.lastfm_password.data)
         user_obj.set_password(reg_form.password.data)
         try:
             n = mongo.db.users.insert_one({'user': user_obj.username,
                                           'email': user_obj.email,
                                           'password_hash': user_obj.password_hash,
-                                           'discogs_user': user_obj.discogs_user,
+                                           'lastfm_username': user_obj.lastfm_user,
+                                           'lastfm_password': user_obj.lastfm_password,
                                            'records': [],
                                            'tmp_files': [],
                                            'discogs_info': {'oath_token': None,
