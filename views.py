@@ -5,16 +5,15 @@ from forms.misc_forms import DiscogsValidationForm, AddRecordForm
 from tables.collection_table import CollectionTable, CollectionItem
 from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
+from utils.scrobbler import scrobble_album
 
 import discogs_client
 from bson import Binary
-import pylast
 
 import sys
 import datetime
 import requests
 import os
-import time
 
 
 @login_manager.user_loader
@@ -24,8 +23,6 @@ def load_user(user):
         return User(username=user['user'])
     else:
         return None
-
-
 
 
 @app.route('/collection/<username>')
@@ -117,7 +114,8 @@ def add_record():
                                                      'genres': genres,
                                                      'styles': styles,
                                                      'image': image,
-                                                     'image_binary': image_binary})
+                                                     'image_binary': image_binary,
+                                                     'track_data': [i.data for i in tracklist]})
                 except:
                     print(sys.exc_info()[:2])
             return redirect(url_for('collection', username=username,
@@ -127,27 +125,18 @@ def add_record():
 
 @app.route('/user/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
 def album_page(username, album_id):
-    user = mongo.db.users.find_one({'user': username}, {'lastfm_password': 1})
+    user = mongo.db.users.find_one({'user': username})
     record = mongo.db.records.find_one({'_id': album_id})
     image_binary = record['image_binary']
     filename = 'temp_image%d.jpeg' % album_id
     upload_filename = os.path.join(app.static_folder, 'tmp', filename)
     if not os.path.exists(upload_filename):
-        print('File does not exist. Creating temporary file...')
         with open(upload_filename, 'wb') as f:
             f.write(image_binary)
             n = mongo.db.users.update({'user': username},
                                       {'$push': {'tmp_files': filename}})
     if request.method == 'POST':
-        try:
-            lastfm_client = pylast.LastFMNetwork(api_key=app.config['LASTFM_API_KEY'],
-                                                 api_secret=app.config['LASTFM_API_SECRET'],
-                                                 username=username, password_hash=user['lastfm_password'])
-            artist = record['artists'][0]
-            for track in record['tracks']:
-                lastfm_client.scrobble(artist=artist, title=track, timestamp=time.time())
-        except:
-            print(sys.exc_info()[:2])
+        scrobble_album(record, user)
         return render_template('album_page.html', record=record, filename=filename)
     return render_template('album_page.html', record=record, filename=filename)
 

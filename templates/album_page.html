@@ -13,12 +13,12 @@
     <h1>{{ record.title }}</h1>
     <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
     <p>Tracklist</p>
-    <ol id="tracklist">
-        {% for track in record.tracks %}
-            <li>{{ track }}</li>
+    <ul id="tracklist">
+        {% for track in record.track_data %}
+            <li>{{ '%s %s - %s' % (track.position, track.title, track.duration) }}</li>
             </br>
         {% endfor %}
-    </ol>
+    </ul>
 
     <form action="" method="post" class="form" role="form">
         <input type="submit" name="scrobble" value="Scrobble this album">
