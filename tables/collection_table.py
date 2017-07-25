@@ -11,6 +11,7 @@ class CollectionTable(Table):
     style = Col('Style')
     times_played = Col('Times Played')
     date_added = DatetimeCol('Date Added')
+    html_attrs = {'class': 'table table-hover'}
 
     # allow_sort = True
     #

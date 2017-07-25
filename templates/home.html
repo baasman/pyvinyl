@@ -1,4 +1,29 @@
 {% extends "base.html" %}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
 {% block content %}
-    <h1>The Record Scrobbler</h1>
+    <div class="container">
+      <div class="header clearfix">
+
+{#        <h3 class="text-muted">Project name</h3>#}
+      </div>
+
+      <div class="jumbotron">
+        <h1>The Record Scrobbler</h1>
+        <p class="lead">Scrobble them records!.</p>
+        <p><a class="btn btn-lg btn-success" href="{{ url_for('register') }}"
+              role="button">Sign up today</a></p>
+      </div>
+
+      <div class="row marketing">
+        <div class="col-lg-6">
+          <h4>Maintain collection</h4>
+          <p>Import your records straight from your discogs account.</p>
+
+          <h4>Scrobble to lastfm</h4>
+          <p>Don't miss out on those precious plays.</p>
+        </div>
+
+    </div> <!-- /container -->
 {% endblock %}
