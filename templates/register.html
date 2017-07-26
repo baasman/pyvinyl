@@ -1,13 +1,32 @@
 {% extends "base.html" %}
+{% block style %}
+    <style>
+        .form-control {
+            width: 400px;
+
+        }
+    </style>
+{% endblock %}
 {% block content %}
     {% import "bootstrap/wtf.html" as wtf %}
-    <div class="content-section">
-        <div class="center">
-          <h1>Register for an account</h1>
-          <br/>
-        {{ wtf.quick_form(form) }}
-      </div>
+
+    <div class="container">
+        <div class="'row">
+            <div class="col-md-6 col-md-offset-3">
+                <h1>Register</h1>
+                <form class="form-horizontal" method="post" role="form">
+                    {{ form.hidden_tag() }}
+                    {{ wtf.form_errors(form, hiddens="only") }}
+
+                    {{ wtf.form_field(form.email) }}
+                    {{ wtf.form_field(form.username) }}
+                    {{ wtf.form_field(form.password) }}
+                    {{ wtf.form_field(form.confirm_password) }}
+                    {{ wtf.form_field(form.lastfm_user) }}
+                    {{ wtf.form_field(form.lastfm_password) }}
+                    {{ wtf.form_field(form.submit, class='btn btn-success') }}
+                </form>
+            </div>
+        </div>
     </div>
-    <form action="" method="post" name="form">
-    </form>
 {% endblock %}

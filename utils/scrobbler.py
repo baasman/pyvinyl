@@ -24,6 +24,6 @@ def scrobble_album(record, user):
                 track_length = track['duration']
                 lfm_timestamp_datetime = get_time(lfm_timestamp_datetime, track_length)
             lfm_timestamp = (lfm_timestamp_datetime - datetime.datetime.utcfromtimestamp(0)).total_seconds()
-            lastfm_client.scrobble(artist=artist, title=track['title'], timestamp=lfm_timestamp)
+            # lastfm_client.scrobble(artist=artist, title=track['title'], timestamp=lfm_timestamp)
     except:
         print(sys.exc_info()[:2])

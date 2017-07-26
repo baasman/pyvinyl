@@ -137,7 +137,9 @@ def album_page(username, album_id):
                                       {'$push': {'tmp_files': filename}})
     if request.method == 'POST':
         scrobble_album(record, user)
-        return render_template('album_page.html', record=record, filename=filename)
+        has_time = record['track_data'][0]['duration'] != ''
+        return render_template('album_page.html', record=record, filename=filename,
+                               has_time=has_time)
     return render_template('album_page.html', record=record, filename=filename)
 
 

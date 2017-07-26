@@ -12,10 +12,15 @@
 {% block content %}
     <h1>{{ record.title }}</h1>
     <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
-    <p>Tracklist</p>
+    </br>
+    <h3>Tracklist</h3>
     <ul id="tracklist">
         {% for track in record.track_data %}
-            <li>{{ '%s %s - %s' % (track.position, track.title, track.duration) }}</li>
+            {% if has_time %}
+                <li>{{ '%s %s - %s' % (track.position, track.title, track.duration) }}</li>
+            {% else %}
+                <li>{{ '%s %s' % (track.position, track.title) }}</li>
+            {% endif %}
             </br>
         {% endfor %}
     </ul>

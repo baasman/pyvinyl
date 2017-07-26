@@ -1,12 +1,26 @@
 {% extends "base.html" %}
+{% block style %}
+    <style>
+        .form-control {
+            width: 400px;
+
+        }
+    </style>
+{% endblock %}
 {% block content %}
-    <h2>add a record here</h2>
     {% import "bootstrap/wtf.html" as wtf %}
-    <div class="content-section">
-        <div class="center">
-            {{ wtf.quick_form(form) }}
+
+    <div class="container">
+        <div class="'row">
+            <div class="col-md-6 col-md-offset-3">
+                <h3>Add a record based on Discogs id</h3>
+                <form class="form-horizontal" method="post" role="form">
+                    {{ form.hidden_tag() }}
+                    {{ wtf.form_errors(form, hiddens="only") }}
+                    {{ wtf.form_field(form.discogs_id) }}
+                    {{ wtf.form_field(form.submit, class='btn btn-success') }}
+                </form>
+            </div>
         </div>
     </div>
-
-    <form action="" method="post" name="form"></form>
 {% endblock %}
