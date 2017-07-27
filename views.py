@@ -1,7 +1,7 @@
 from app import app, mongo, dclient, login_manager
 from user_management import User
 from forms.user_forms import LoginForm, RegistrationForm
-from forms.misc_forms import DiscogsValidationForm, AddRecordForm
+from forms.misc_forms import DiscogsValidationForm, AddRecordForm, ScrobbleForm
 from tables.collection_table import CollectionTable, CollectionItem
 from flask import request, redirect, render_template, flash, url_for
 from flask_login import login_user, logout_user, login_required
@@ -115,7 +115,9 @@ def add_record():
                                                      'styles': styles,
                                                      'image': image,
                                                      'image_binary': image_binary,
-                                                     'track_data': [i.data for i in tracklist]})
+                                                     'track_data': [i.data for i in tracklist],
+                                                     'total_plays': 0,
+                                                     'times_played': []})
                 except:
                     print(sys.exc_info()[:2])
             return redirect(url_for('collection', username=username,
@@ -130,17 +132,27 @@ def album_page(username, album_id):
     image_binary = record['image_binary']
     filename = 'temp_image%d.jpeg' % album_id
     upload_filename = os.path.join(app.static_folder, 'tmp', filename)
+    scrobble_form = ScrobbleForm()
     if not os.path.exists(upload_filename):
         with open(upload_filename, 'wb') as f:
             f.write(image_binary)
             n = mongo.db.users.update({'user': username},
                                       {'$push': {'tmp_files': filename}})
     if request.method == 'POST':
-        scrobble_album(record, user)
+        dt = scrobble_form.play_date.data
+        scrobble_album(record=record, user=user, current_time=dt)
         has_time = record['track_data'][0]['duration'] != ''
+        n1 = mongo.db.users.update({'user': username,
+                                   'records.id': album_id},
+                                  {'$inc': {'records.$.count': 1}})
+        n2 = mongo.db.records.update({'_id': album_id},
+                                     {'$inc': {'total_plays': 1}})
+        n3 = mongo.db.records.update({'_id': album_id},
+                                     {'$push': {'times_played': {'date': dt,
+                                                               'user': username}}})
         return render_template('album_page.html', record=record, filename=filename,
-                               has_time=has_time)
-    return render_template('album_page.html', record=record, filename=filename)
+                               has_time=has_time, form=scrobble_form)
+    return render_template('album_page.html', record=record, filename=filename, form=scrobble_form)
 
 
 @app.route('/')

@@ -1,32 +1,54 @@
 {% extends "base.html" %}
 {% block style %}
     <style>
-        #tracklist ol {
+        #tracklist {
             float: left;
             display: inline-block;
+            list-style: none;
+            margin: .2px 0;
         }
 
+        li {
+            margin: .0002px 0;
+            line-height: 10px 0;
+        }
     </style>
-
 {% endblock %}
-{% block content %}
-    <h1>{{ record.title }}</h1>
-    <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
-    </br>
-    <h3>Tracklist</h3>
-    <ul id="tracklist">
-        {% for track in record.track_data %}
-            {% if has_time %}
-                <li>{{ '%s %s - %s' % (track.position, track.title, track.duration) }}</li>
-            {% else %}
-                <li>{{ '%s %s' % (track.position, track.title) }}</li>
-            {% endif %}
-            </br>
-        {% endfor %}
-    </ul>
 
-    <form action="" method="post" class="form" role="form">
-        <input type="submit" name="scrobble" value="Scrobble this album">
-    </form>
+{% block content %}
+    {% import "bootstrap/wtf.html" as wtf %}
+    <div class="container">
+        <h2>{{ record['title'] }}</h2>
+        <small>{{ record['artists'][0] }}</small>
+        <div class="row">
+            <div class="col-xs-6 col-md-4">
+                </br>
+                <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
+            </div>
+            <div class="col-xs-6 col-md-4">
+                <h5>Tracklist</h5>
+                <ul id="tracklist">
+                    {% for track in record.track_data %}
+                        {% if has_time %}
+                            <li id="track">{{ '%s %s - %s' % (track.position, track.title, track.duration) }}</li>
+                        {% else %}
+                            <li id="track">{{ '%s %s' % (track.position, track.title) }}</li>
+                        {% endif %}
+                        </br>
+                    {% endfor %}
+                </ul>
+            </div>
+
+                <div class="col-xs-6 col-md-4">
+                        <form class="form-horizontal" method="post" role="form">
+                            {{ form.hidden_tag() }}
+                            {{ wtf.form_errors(form, hiddens="only") }}
+
+                            {{ wtf.form_field(form.play_date) }}
+                            {{ wtf.form_field(form.submit, class='btn btn-success') }}
+                        </form>
+                </div>
+        </div>
+    </div>
 
 {% endblock %}

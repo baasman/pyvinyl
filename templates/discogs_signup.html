@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-    <p>A key has been created for you</p>
-    <a href="{{ url }}" target="_blank">Click here to authenticate, then enter the key value below</a>
-
     {% import "bootstrap/wtf.html" as wtf %}
-    <div class="content-section">
-        <div class="center">
-            <h2>Discogs Key</h2>
-          <br/>
-            {{ wtf.quick_form(form) }}
+    <div class="container">
+        <div class="'row">
+            <div class="col-md-6 col-md-offset-3">
+                <p>A key has been created for you</p>
+                    <a href="{{ url }}" target="_blank">Click here to authenticate, then enter the key value below</a>
+            </div>
         </div>
     </div>
 
-    <form action="" method="post" name="form"></form>
+    <div class="container">
+        <div class="'row">
+            <div class="col-md-6 col-md-offset-3">
+                <h1>Login</h1>
+                {#            {{ wtf.quick_form(form=form, extra_classes='form-horizontal') }}#}
+                <form class="form-horizontal" method="post" role="form">
+                    {{ form.hidden_tag() }}
+                    {{ wtf.form_errors(form, hiddens="only") }}
+
+                    {{ wtf.form_field(form.code) }}
+                    {{ wtf.form_field(form.submit, class='btn btn-success') }}
+                </form>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
