@@ -4,16 +4,51 @@ from forms.user_forms import LoginForm, RegistrationForm
 from forms.misc_forms import DiscogsValidationForm, AddRecordForm, ScrobbleForm
 from tables.collection_table import CollectionTable, CollectionItem
 from flask import request, redirect, render_template, flash, url_for
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from utils.scrobbler import scrobble_album
+from utils.data_viz import get_items, simple_hist
+
 
 import discogs_client
 from bson import Binary
+import pandas as pd
+import pymongo
 
 import sys
 import datetime
 import requests
 import os
+
+
+@app.route('/<string:username>/explore')
+def explore_collection(username):
+    user = mongo.db.users.find_one({'user': username})
+    df_list = get_items(user, for_table=False)
+    df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
+                                        'TimesPlayed', 'DateAdded'])
+    top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(7)
+    records = []
+    for title in top_5_albums.Title.values:
+        records.append(mongo.db.records.find_one({'title': title}))
+
+    images_to_display = []
+    for record in records:
+        fname = 'temp_image%s.jpeg' % record['_id']
+        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
+        if not os.path.exists(upload_filename):
+            with open(upload_filename, 'wb') as f:
+                f.write(record['image_binary'])
+                n = mongo.db.users.update({'user': username},
+                                          {'$push': {'tmp_files': fname}})
+        n_plays_by_user = top_5_albums.loc[top_5_albums.Title == record['title'], 'TimesPlayed'].values[0]
+        images_to_display.append((fname, record['_id'], n_plays_by_user))
+
+    df.to_csv('sample_data.csv')
+    fname = simple_hist(user, df, 'Year')
+    fname = 'bar.jpeg'
+
+    return render_template('explore_collection.html', filename=fname,
+                           images_to_display=images_to_display, user=user)
 
 
 @login_manager.user_loader
@@ -31,27 +66,14 @@ def collection(username):
     sort = request.args.get('sort')
     reverse = (request.args.get('direction', 'asc') == 'desc')
     user = mongo.db.users.find_one({'user': username})
-    all_records = user['records']
-    record_dict = {i['id']: [i['count'], i['date_added']] for i in all_records}
-    if len(record_dict) > 0:
-        records = mongo.db.records.find({'_id': {'$in': list(record_dict.keys())}})
-        items = []
-        for record in records:
-            date = record_dict[record['_id']][1]
-            items.append(CollectionItem(record['title'],
-                                        record['artists'][0],
-                                        record['year'],
-                                        ', '.join(record['styles']),
-                                        ', '.join(record['genres']),
-                                        record_dict[record['_id']][0],
-                                        date,
-                                        record['_id'],
-                                        username))
+    items = get_items(user, for_table=True)
+    if len(items) > 0:
         table = CollectionTable(items)
     else:
         table = None
     return render_template('collection.html', username=username, user=user,
                            client=dclient, table=table)
+
 
 @app.route('/discogs_setup/<username>', methods=['GET', 'POST'])
 @login_required
@@ -106,6 +128,7 @@ def add_record():
                 try:
                     image_bytes = requests.get(image['resource_url']).content
                     image_binary = Binary(image_bytes)
+                    artist_id = artists[0].id
                     n = mongo.db.records.insert_one({'_id': discogs_id,
                                                      'year': int(album.year),
                                                      'title': album.title,
@@ -117,7 +140,8 @@ def add_record():
                                                      'image_binary': image_binary,
                                                      'track_data': [i.data for i in tracklist],
                                                      'total_plays': 0,
-                                                     'times_played': []})
+                                                     'plays': [],
+                                                     'artist_id': artist_id})
                 except:
                     print(sys.exc_info()[:2])
             return redirect(url_for('collection', username=username,
@@ -133,6 +157,13 @@ def album_page(username, album_id):
     filename = 'temp_image%d.jpeg' % album_id
     upload_filename = os.path.join(app.static_folder, 'tmp', filename)
     scrobble_form = ScrobbleForm()
+
+    total_user_plays = mongo.db.users.find_one(
+        {'user': username, 'records.id': album_id},
+        {'_id': 0, 'records.$': 1}
+    )
+    total_user_plays = total_user_plays['records'][0]['count']
+
     if not os.path.exists(upload_filename):
         with open(upload_filename, 'wb') as f:
             f.write(image_binary)
@@ -148,16 +179,42 @@ def album_page(username, album_id):
         n2 = mongo.db.records.update({'_id': album_id},
                                      {'$inc': {'total_plays': 1}})
         n3 = mongo.db.records.update({'_id': album_id},
-                                     {'$push': {'times_played': {'date': dt,
-                                                               'user': username}}})
+                                     {'$push': {'plays': {'date': dt,
+                                                          'user': username}}},
+                                     upsert=True)
+        print(n3)
         return render_template('album_page.html', record=record, filename=filename,
-                               has_time=has_time, form=scrobble_form)
-    return render_template('album_page.html', record=record, filename=filename, form=scrobble_form)
+                               has_time=has_time, form=scrobble_form,
+                               total_user_plays=total_user_plays)
+    return render_template('album_page.html', record=record, filename=filename, form=scrobble_form,
+                           total_user_plays=total_user_plays)
 
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    try:
+        username = current_user.username
+    except AttributeError:
+        return render_template('home.html')
+
+    unwind = {'$unwind': '$plays'}
+    project = {'$project': {'played': '$plays.date',
+                            'album_name': '$title',
+                            'image_binary': 1,
+                            '_id': 1}}
+    sort = {'$sort': {'played': -1}}
+    limit = {'$limit': 5}
+    pipeline = [unwind, project, sort, limit]
+    recent_records = mongo.db.records.aggregate(pipeline)
+    for record in recent_records:
+        fname = 'temp_image%s.jpeg' % record['_id']
+        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
+        if not os.path.exists(upload_filename):
+            with open(upload_filename, 'wb') as f:
+                f.write(record['image_binary'])
+                n = mongo.db.users.update({'user': username},
+                                          {'$push': {'tmp_files': fname}})
+    return render_template('home.html', recent_records=recent_records)
 
 
 @app.route('/about')

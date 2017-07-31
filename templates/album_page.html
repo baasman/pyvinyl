@@ -47,7 +47,16 @@
                             {{ wtf.form_field(form.play_date) }}
                             {{ wtf.form_field(form.submit, class='btn btn-success') }}
                         </form>
+                        </br>
+                        <p>{{ 'Total plays by you: %d' % total_user_plays }}</p>
+                        <p>{{ 'Total plays on website: %d' % record['total_plays'] }}</p>
+
+
                 </div>
+        </div>
+        <div class="row">
+
+
         </div>
     </div>
 

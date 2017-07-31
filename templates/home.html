@@ -5,34 +5,33 @@
 {% block content %}
     <div class="container">
       <div class="header clearfix">
-
-{#        <h3 class="text-muted">Project name</h3>#}
       </div>
 
       <div class="jumbotron">
-        <h1>The Record Scrobbler</h1>
-        <p class="lead">Scrobble them records!.</p>
+        <h1>The Record Recorder</h1>
+        <p class="lead">Scrobble your records!</p>
           {% if current_user.is_authenticated %}
                 <p><a class="btn btn-lg btn-success" href="{{ url_for('collection',
                     username=current_user['username']) }}"
-                    role="button">Go to your collection!</a></p>
+                    role="button">Go to your collection</a></p>
           {% else %}
                 <p><a class="btn btn-lg btn-success" href="{{ url_for('register') }}"
                     role="button">Sign up</a></p>
           {% endif %}
       </div>
 
-      <div class="row marketing">
+      <div class="row">
         <div class="col-lg-6">
           <h4>Maintain your collection</h4>
           <p>Import your records straight from your discogs account.</p>
 
           <h4>Scrobble to lastfm</h4>
-          <p>Don't miss out on those precious plays.</p>
+          <p>Don't miss out on those precious plays. People need to know how cool you are</p>
 
             <h4>Analyze your collection</h4>
           <p>View interesting statistics and graphs based on both your collection,
             and the overall userbase</p>
+            <h3>helloooo</h3>
         </div>
 
 
