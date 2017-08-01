@@ -10,6 +10,7 @@
             float: left;
             text-align: center;
             margin-right: 10px;
+            margin-bottom: 10px;
         }
 
         #info_more {
@@ -35,12 +36,6 @@
                     </a>
                     </div>
                 {% endfor %}
-                <div class="imgContainer">
-                    <a href="{{ url_for('top_albums', username=user['user']) }}">
-                        <button id="info_more" type="button" class="btn btn-info">View all</button>
-                    </a>
-                    </div>
-
         </div>
 
         </br>
@@ -54,4 +49,3 @@
         </div>
     </div>
 {% endblock %}
-

@@ -27,7 +27,7 @@ def explore_collection(username):
     df_list = get_items(user, for_table=False)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
-    top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(7)
+    top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(6)
     records = []
     for title in top_5_albums.Title.values:
         records.append(mongo.db.records.find_one({'title': title}))
@@ -44,12 +44,34 @@ def explore_collection(username):
         n_plays_by_user = top_5_albums.loc[top_5_albums.Title == record['title'], 'TimesPlayed'].values[0]
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
-    df.to_csv('sample_data.csv')
-    fname = simple_hist(user, df, 'Year')
-    fname = 'bar.jpeg'
-
     return render_template('explore_collection.html', filename=fname,
                            images_to_display=images_to_display, user=user)
+
+@app.route('/<string:username>/explore/top_albums')
+def top_albums(username):
+    user = mongo.db.users.find_one({'user': username})
+    df_list = get_items(user, for_table=False)
+    df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
+                                        'TimesPlayed', 'DateAdded'])
+    top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']]
+    records = []
+    for title in top_5_albums.Title.values:
+        records.append(mongo.db.records.find_one({'title': title}))
+
+    images_to_display = []
+    for record in records:
+        fname = 'temp_image%s.jpeg' % record['_id']
+        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
+        if not os.path.exists(upload_filename):
+            with open(upload_filename, 'wb') as f:
+                f.write(record['image_binary'])
+                n = mongo.db.users.update({'user': username},
+                                          {'$push': {'tmp_files': fname}})
+        n_plays_by_user = top_5_albums.loc[top_5_albums.Title == record['title'], 'TimesPlayed'].values[0]
+        images_to_display.append((fname, record['_id'], n_plays_by_user))
+
+    return render_template('top_albums.html', images_to_display=images_to_display,
+                           user=user)
 
 
 @login_manager.user_loader
