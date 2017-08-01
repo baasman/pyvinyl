@@ -21,6 +21,7 @@ import os
 
 
 @app.route('/<string:username>/explore')
+@login_required
 def explore_collection(username):
     user = mongo.db.users.find_one({'user': username})
     df_list = get_items(user, for_table=False)
@@ -194,8 +195,11 @@ def album_page(username, album_id):
 def home():
     try:
         username = current_user.username
+        user = mongo.db.users.find_one({'user': username})
     except AttributeError:
-        return render_template('home.html')
+        username = 'anonymous'
+        user = None
+
 
     unwind = {'$unwind': '$plays'}
     project = {'$project': {'played': '$plays.date',
@@ -203,18 +207,24 @@ def home():
                             'image_binary': 1,
                             '_id': 1}}
     sort = {'$sort': {'played': -1}}
-    limit = {'$limit': 5}
+    limit = {'$limit': 6}
     pipeline = [unwind, project, sort, limit]
     recent_records = mongo.db.records.aggregate(pipeline)
+    images_to_display = []
     for record in recent_records:
+        date = record['played'].strftime('%b-%d %H:%M')
         fname = 'temp_image%s.jpeg' % record['_id']
         upload_filename = os.path.join(app.static_folder, 'tmp', fname)
         if not os.path.exists(upload_filename):
             with open(upload_filename, 'wb') as f:
                 f.write(record['image_binary'])
-                n = mongo.db.users.update({'user': username},
-                                          {'$push': {'tmp_files': fname}})
-    return render_template('home.html', recent_records=recent_records)
+                if username != 'anonymous':
+                    n = mongo.db.users.update({'user': username},
+                                              {'$push': {'tmp_files': fname}})
+        images_to_display.append((fname, record['_id'], date))
+
+    return render_template('home.html', images_to_display=images_to_display, user=user,
+                           username=username)
 
 
 @app.route('/about')

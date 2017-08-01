@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 {% block style %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/home.css') }}">
+    <style>
+        .imgContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+        .jumbotron {
+            background-image: url({{ url_for('static', filename='img/15015497992215.png') }});
+            -webkit-background-size:;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+    </style>
 {% endblock %}
 {% block content %}
     <div class="container">
@@ -31,8 +46,30 @@
             <h4>Analyze your collection</h4>
           <p>View interesting statistics and graphs based on both your collection,
             and the overall userbase</p>
-            <h3>helloooo</h3>
         </div>
+          <div class="row">
+              <div class="col-lg-12">
+                </br>
+                <h6>RECENTLY RECORDED</h6>
+                  {% for image_file in images_to_display %}
+                    <div class="imgContainer" id="top_albums">
+                    {% if username != 'anonymous' %}
+                        <a href="{{ url_for('album_page', album_id=image_file[1], username=user['user']) }}">
+                            <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
+                                 style="height: 100px; width:100px">
+                            <figcaption>{{ image_file[2] }}</figcaption>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}">
+                            <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
+                                 style="height: 100px; width:100px">
+                            <figcaption>{{ image_file[2] }}</figcaption>
+                        </a>
+                    {% endif %}
+                    </div>
+                {% endfor %}
+              </div>
+          </div>
 
 
     </div> <!-- /container -->
