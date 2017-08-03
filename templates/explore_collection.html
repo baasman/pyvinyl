@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block style %}
     <style>
-        #row_1 {
+        .row {
             text-align: center;
 {#            display: inline-block;#}
         }
@@ -12,10 +12,34 @@
             margin-right: 10px;
         }
 
+        .imgGenreContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+        }
+
         #info_more {
             margin-left: 15px;
             margin-top: 65px;
             text-align: center;
+        }
+
+        .box {
+            width: 150px;
+            height: 150px;
+            border: 3px solid black;
+            line-height: 150px;
+            padding: 10px;
+            background-color: rgba(54, 60, 10, .3);
+        }
+
+        #boxtext {
+            text-align: center;
+        }
+
+        #boxcaption {
+            text-align: center;
+
         }
 
     </style>
@@ -45,12 +69,21 @@
 
         </br>
         <div class="row" id="row_2">
-            <div class="col-md-6">
-{#                <img src="{{ url_for('static', filename='tmp_viz/%s' % filename) }}">#}
-            </div>
-            <div class="col-md-6">
-            </div>
-
+            <strong><h3>MOST LISTENED TO GENRES</h3></strong>
+            </br>
+                {% for genre in most_common_genres %}
+                    <div class="imgGenreContainer" id="top_genres">
+                        <div class="box">
+                            <p id="boxtext">{{ genre[0] }}</p>
+                            <p id="boxcaption">plays: {{ genre[1] }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="imgGenreContainer">
+                    <a href="{{ url_for('top_albums', username=user['user']) }}">
+                        <button id="info_more" type="button" class="btn btn-info">View all</button>
+                    </a>
+                </div>
         </div>
     </div>
 {% endblock %}

@@ -3,16 +3,15 @@ from user_management import User
 from forms.user_forms import LoginForm, RegistrationForm
 from forms.misc_forms import DiscogsValidationForm, AddRecordForm, ScrobbleForm
 from tables.collection_table import CollectionTable, CollectionItem
-from flask import request, redirect, render_template, flash, url_for
+from flask import request, redirect, render_template, flash, url_for, g
 from flask_login import login_user, logout_user, login_required, current_user
 from utils.scrobbler import scrobble_album
-from utils.data_viz import get_items, simple_hist
+from utils.data_viz import get_items, get_most_common_genres
 
 
 import discogs_client
 from bson import Binary
 import pandas as pd
-import pymongo
 
 import sys
 import datetime
@@ -27,6 +26,17 @@ def explore_collection(username):
     df_list = get_items(user, for_table=False)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
+    df.to_csv('temp.csv', index=False)
+
+    genres = get_most_common_genres(df)
+    print(genres)
+    for g in genres:
+        pass
+        # print(g)
+        # print(mongo.db.records.find_one({'plays.user': username, 'genres': g[0]}, {'_id': 1}))
+    # query to find count: db.records.find({genres: 'Jazz', 'plays.user': 'boudey'},
+    # {image_binary: 0}).count()
+
     top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(6)
     records = []
     for title in top_5_albums.Title.values:
@@ -45,7 +55,8 @@ def explore_collection(username):
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
     return render_template('explore_collection.html', filename=fname,
-                           images_to_display=images_to_display, user=user)
+                           images_to_display=images_to_display, user=user,
+                           most_common_genres=genres[:6])
 
 @app.route('/<string:username>/explore/top_albums')
 def top_albums(username):
@@ -123,10 +134,16 @@ def discogs_setup(username):
 def add_record():
     args = dict(request.args)
     username = args['username'][0]
+
     user = mongo.db.users.find_one({'user': username})
     form = AddRecordForm()
-    if request.method == 'POST':
-        discogs_id = int(form.discogs_id.data)
+    if request.method == 'POST' and form.validate_on_submit():
+        print(form.discogs_master_id.data)
+        print(form.discogs_id.data)
+        if form.discogs_id.data:
+            discogs_id = int(form.discogs_id.data)
+        else:
+            discogs_id = int(form.discogs_master_id.data)
         if mongo.db.users.find_one({'user': username,
                                     'records': {'$in': [discogs_id]}}) is not None:
             flash('Album already in collection')
@@ -146,6 +163,7 @@ def add_record():
                     styles = album.styles
                     image = album.images[0]
                 except discogs_client.exceptions.HTTPError:
+                    app.logger.info()
                     flash('Could not find release on discogs. Double check the release id')
                     return redirect(url_for('add_record', username=username))
                 try:
@@ -185,7 +203,11 @@ def album_page(username, album_id):
         {'user': username, 'records.id': album_id},
         {'_id': 0, 'records.$': 1}
     )
-    total_user_plays = total_user_plays['records'][0]['count']
+
+    if total_user_plays:
+        total_user_plays = total_user_plays['records'][0]['count']
+    else:
+        total_user_plays = 0
 
     if not os.path.exists(upload_filename):
         with open(upload_filename, 'wb') as f:
@@ -205,7 +227,6 @@ def album_page(username, album_id):
                                      {'$push': {'plays': {'date': dt,
                                                           'user': username}}},
                                      upsert=True)
-        print(n3)
         return render_template('album_page.html', record=record, filename=filename,
                                has_time=has_time, form=scrobble_form,
                                total_user_plays=total_user_plays)
@@ -251,7 +272,7 @@ def home():
 
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', color='green')
 
 
 @app.route('/login', methods=['GET', 'POST'])

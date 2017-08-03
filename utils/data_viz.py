@@ -1,10 +1,8 @@
-from uuid import uuid4
-import os
-
 from app import mongo, app
 from tables.collection_table import CollectionItem
 
-import matplotlib.pyplot as plt
+from collections import Counter
+
 
 def get_items(user, for_table=True):
     all_records = user['records']
@@ -17,8 +15,8 @@ def get_items(user, for_table=True):
             x = CollectionItem(record['title'],
                                record['artists'][0],
                                record['year'],
-                               ', '.join(record['styles']),
                                ', '.join(record['genres']),
+                               ', '.join(record['styles']),
                                record_dict[record['_id']][0],
                                date,
                                record['_id'],
@@ -30,20 +28,11 @@ def get_items(user, for_table=True):
                                 x.date_added])
     return col_list
 
-def simple_hist(user, data, column):
+def get_most_common_genres(df):
+    df.Genre = df.Genre.str.replace(' ', '')
+    df.Genre = df.Genre .str.replace(',&', '&')
+    genres = df.Genre.str.split(',')
+    genres = [item for sublist in genres.values for item in sublist]
+    c = Counter(genres).most_common()
+    return c
 
-    # p = plt.figure()
-    # h = data[column].hist()
-    uuid = uuid4()
-    fname = '%s.png' % str(uuid)
-    upload_filename = os.path.join(app.static_folder, 'tmp_viz', fname)
-    # if not os.path.exists(upload_filename):
-    #     with open(upload_filename, 'wb') as f:
-    #         p.savefig(fname)
-    #         n = mongo.db.users.update({'user': user['user']},
-    #                                   {'$push': {'tmp_viz': fname}},
-    #                                   upsert=True)
-    return fname
-
-def artist_record_plot(user, data):
-    pass

@@ -1,6 +1,7 @@
 from app import app
 
 import pylast
+from flask import current_app
 
 import sys
 import datetime
