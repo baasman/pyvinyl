@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block style %}
+    <style>
+        .row {
+            text-align: center;
+{#            display: inline-block;#}
+        }
+
+        .imgContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+        .imgGenreContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+        #info_more {
+            margin-left: 15px;
+            margin-top: 65px;
+            text-align: center;
+        }
+
+        .box {
+            width: 150px;
+            height: 150px;
+            border: 3px solid black;
+            line-height: 150px;
+            padding: 10px;
+            background-color: rgba(54, 60, 10, .3);
+            word-break: break-all;
+        }
+
+        a {
+            color: black;
+        }
+
+        #boxcaption {
+            text-align: center;
+            height: 300px;
+            word-break: break-all;
+        }
+
+        #boxtext {
+            text-align: center;
+            word-break: break-all;
+            word-wrap: break-word;
+        }
+
+        .imgGenreContainer p {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row" id="row_1">
+            <strong><h3>MOST USED TAGS</h3></strong>
+            </br>
+                {% for tag in most_common_tags %}
+                    <div class="imgGenreContainer" id="top_genres">
+                        <a href="{{ url_for('about')}}">
+                            <div class="box">
+                                <p id="boxtext">{{ tag['_id'] }}: {{ tag['count'] }} </p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+        </div>
+
+        </br>
+        <div class="row" id="row_2">
+            <div class="col-md-6">
+{#                <img src="{{ url_for('static', filename='tmp_viz/%s' % filename) }}">#}
+            </div>
+            <div class="col-md-6">
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

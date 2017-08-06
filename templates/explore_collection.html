@@ -18,6 +18,12 @@
             margin-right: 10px;
         }
 
+        .imgTagContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+        }
+
         #info_more {
             margin-left: 15px;
             margin-top: 65px;
@@ -48,6 +54,11 @@
             text-align: center;
             word-break: break-all;
             word-wrap: break-word;
+        }
+
+        .imgGenreContainer p {
+            display: inline-block;
+            vertical-align: top;
         }
 
         .imgGenreContainer p {
@@ -98,6 +109,27 @@
                         <button id="info_more" type="button" class="btn btn-info">View all</button>
                     </a>
                 </div>
+        </div>
+
+        </br>
+        <div class="row" id="row_3">
+            <strong><h3>MOST COMMON TAGS</h3></strong>
+            </br>
+                {% for tag in most_common_tags %}
+                    <div class="imgTagContainer" id="top_tags">
+                        <a href="{{ url_for('top_in_tag', username=user['user'], tag=tag['_id']) }}">
+                            <div class="box">
+                                <p id="boxtext">{{ tag['_id'] }}: {{ tag['count'] }} </p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+                <div class="imgTagContainer">
+                    <a href="{{ url_for('top_tags', username=user['user']) }}">
+                        <button id="info_more" type="button" class="btn btn-info">View all</button>
+                    </a>
+                </div>
+
         </div>
 
     </div>
