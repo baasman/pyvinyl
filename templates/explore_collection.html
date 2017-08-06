@@ -31,15 +31,28 @@
             line-height: 150px;
             padding: 10px;
             background-color: rgba(54, 60, 10, .3);
+            word-break: break-all;
         }
 
-        #boxtext {
-            text-align: center;
+        a {
+            color: black;
         }
 
         #boxcaption {
             text-align: center;
+            height: 300px;
+            word-break: break-all;
+        }
 
+        #boxtext {
+            text-align: center;
+            word-break: break-all;
+            word-wrap: break-word;
+        }
+
+        .imgGenreContainer p {
+            display: inline-block;
+            vertical-align: top;
         }
 
     </style>
@@ -73,18 +86,20 @@
             </br>
                 {% for genre in most_common_genres %}
                     <div class="imgGenreContainer" id="top_genres">
-                        <div class="box">
-                            <p id="boxtext">{{ genre[0] }}</p>
-                            <p id="boxcaption">plays: {{ genre[1] }}</p>
-                        </div>
+                        <a href="{{ url_for('about', data=genre[0])}}">
+                            <div class="box">
+                                <p id="boxtext">{{ genre[0] }}: {{ genre[1] }} </p>
+                            </div>
+                        </a>
                     </div>
                 {% endfor %}
                 <div class="imgGenreContainer">
-                    <a href="{{ url_for('top_albums', username=user['user']) }}">
+                    <a href="{{ url_for('top_genres', username=user['user']) }}">
                         <button id="info_more" type="button" class="btn btn-info">View all</button>
                     </a>
                 </div>
         </div>
+
     </div>
 {% endblock %}
 

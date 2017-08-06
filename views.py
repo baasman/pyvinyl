@@ -19,23 +19,15 @@ import requests
 import os
 
 
-@app.route('/<string:username>/explore')
+@app.route('/<string:username>/explore', methods=['GET', 'POST'])
 @login_required
 def explore_collection(username):
     user = mongo.db.users.find_one({'user': username})
-    df_list = get_items(user, for_table=False)
+    df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
-    df.to_csv('temp.csv', index=False)
-
+    df.to_csv('temp2.csv', index=False)
     genres = get_most_common_genres(df)
-    print(genres)
-    for g in genres:
-        pass
-        # print(g)
-        # print(mongo.db.records.find_one({'plays.user': username, 'genres': g[0]}, {'_id': 1}))
-    # query to find count: db.records.find({genres: 'Jazz', 'plays.user': 'boudey'},
-    # {image_binary: 0}).count()
 
     top_5_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(6)
     records = []
@@ -57,6 +49,19 @@ def explore_collection(username):
     return render_template('explore_collection.html', filename=fname,
                            images_to_display=images_to_display, user=user,
                            most_common_genres=genres[:6])
+
+@app.route('/<string:username>/explore/top_genres')
+def top_genres(username):
+    # TODO: implement this method
+    return username
+
+@app.route('/<string:username>/explore/<string:genre>')
+def top_in_genre(username, genre):
+    # TODO: implement this method
+    records = mongo.db.records.find({'plays.user': username,
+                                     'genres': genre},
+                                    {'_id': 1})
+
 
 @app.route('/<string:username>/explore/top_albums')
 def top_albums(username):
@@ -101,6 +106,10 @@ def collection(username):
     reverse = (request.args.get('direction', 'asc') == 'desc')
     user = mongo.db.users.find_one({'user': username})
     items = get_items(user, for_table=True)
+    items2 = get_items(user, for_table=False)
+    df = pd.DataFrame(items2, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
+                                        'TimesPlayed', 'DateAdded'])
+    print(df.head())
     if len(items) > 0:
         table = CollectionTable(items)
     else:
@@ -138,8 +147,6 @@ def add_record():
     user = mongo.db.users.find_one({'user': username})
     form = AddRecordForm()
     if request.method == 'POST' and form.validate_on_submit():
-        print(form.discogs_master_id.data)
-        print(form.discogs_id.data)
         if form.discogs_id.data:
             discogs_id = int(form.discogs_id.data)
         else:
@@ -167,16 +174,21 @@ def add_record():
                     flash('Could not find release on discogs. Double check the release id')
                     return redirect(url_for('add_record', username=username))
                 try:
-                    image_bytes = requests.get(image['resource_url']).content
-                    image_binary = Binary(image_bytes)
+                    try:
+                        image_bytes = requests.get(image['resource_url']).content
+                        print(image_bytes)
+                        image_binary = Binary(image_bytes)
+                    except:
+                        print('hi')
+                        image_binary = 'default_image'
                     artist_id = artists[0].id
                     n = mongo.db.records.insert_one({'_id': discogs_id,
                                                      'year': int(album.year),
                                                      'title': album.title,
                                                      'artists': [i.name for i in artists],
                                                      'tracks': [i.title for i in tracklist],
-                                                     'genres': genres,
-                                                     'styles': styles,
+                                                     'genres': [i for i in genres],
+                                                     'styles': [i for i in styles],
                                                      'image': image,
                                                      'image_binary': image_binary,
                                                      'track_data': [i.data for i in tracklist],
@@ -227,6 +239,7 @@ def album_page(username, album_id):
                                      {'$push': {'plays': {'date': dt,
                                                           'user': username}}},
                                      upsert=True)
+        print(n1)
         return render_template('album_page.html', record=record, filename=filename,
                                has_time=has_time, form=scrobble_form,
                                total_user_plays=total_user_plays)

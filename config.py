@@ -19,3 +19,5 @@ app_config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
+
+BREAKPOINT_VALUE = '|'
