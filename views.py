@@ -52,15 +52,29 @@ def explore_collection(username):
 
 @app.route('/<string:username>/explore/top_genres')
 def top_genres(username):
-    # TODO: implement this method
-    return username
+    user = mongo.db.users.find_one({'user': username})
+    df_list = get_items(user, for_table=False, add_breakpoints=True)
+    df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
+                                        'TimesPlayed', 'DateAdded'])
+    genres = get_most_common_genres(df)
+    return render_template('top_genres.html', username=username, most_common_genres=genres)
 
 @app.route('/<string:username>/explore/<string:genre>')
 def top_in_genre(username, genre):
-    # TODO: implement this method
     records = mongo.db.records.find({'plays.user': username,
-                                     'genres': genre},
-                                    {'_id': 1})
+                                     'genres': genre})
+    images_to_display = []
+    for record in records:
+        fname = 'temp_image%s.jpeg' % record['_id']
+        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
+        if not os.path.exists(upload_filename):
+            with open(upload_filename, 'wb') as f:
+                f.write(record['image_binary'])
+                n = mongo.db.users.update({'user': username},
+                                          {'$push': {'tmp_files': fname}})
+        images_to_display.append((fname, record['_id']))
+    return render_template('albums_in_genre.html', images_to_display=images_to_display,
+                           username=username, genre=genre)
 
 
 @app.route('/<string:username>/explore/top_albums')
@@ -109,7 +123,6 @@ def collection(username):
     items2 = get_items(user, for_table=False)
     df = pd.DataFrame(items2, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
-    print(df.head())
     if len(items) > 0:
         table = CollectionTable(items)
     else:

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block style %}
+    <style>
+        #row_1 {
+            text-align: center;
+{#            display: inline-block;#}
+        }
+
+        .imgContainer {
+            float: left;
+            text-align: center;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        #info_more {
+            margin-left: 15px;
+            margin-top: 65px;
+            text-align: center;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+
+        <div class="row" id="row_1">
+            <strong><h3>ALBUMS IN: {{ genre.upper() }}</h3></strong>
+            </br>
+                {% for image_file in images_to_display %}
+                    <div class="imgContainer" id="top_albums">
+                    <a href="{{ url_for('album_page', album_id=image_file[1], username=username) }}">
+                        <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
+                             style="height: 150px; width:150px">
+                    </a>
+                    </div>
+                {% endfor %}
+        </div>
+
+        </br>
+        <div class="row" id="row_2">
+            <div class="col-md-6">
+{#                <img src="{{ url_for('static', filename='tmp_viz/%s' % filename) }}">#}
+            </div>
+            <div class="col-md-6">
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
