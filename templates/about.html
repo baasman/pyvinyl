@@ -19,28 +19,18 @@
         <div class="row">
             <h3>Boudewijn Aasman</h3>
             <p>I'm a data scientist that likes to dabble in various programming related
-                projects, such as building and maintaining this website. </p>
-        </div>
-        <div class="row">
-            <div class="testbox">
-                <p id="boxtext">box this</p>
-            </div>
+                projects, such as building <a href="#">and</a> maintaining this website. </p>
+
+            <a href="#" data-toggle="tooltip" title="Fight me!">Hover on me bro</a>
+
         </div>
     </div>
+<script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 {% endblock %}
-
-<strong><h3>MOST LISTENED TO ALBUMS</h3></strong>
-            </br>
-                {% for genre in most_common_genres %}
-                    <div class="imgGenreContainer" id="top_genres">
-                        <div class="testbox">
-                            <p id="boxtext">{{ genre[0] }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-                <div class="imgGenreContainer">
-                    <a href="{{ url_for('top_albums', username=user['user']) }}">
-                        <button id="info_more" type="button" class="btn btn-info">View all</button>
-                    </a>
-                    </div>

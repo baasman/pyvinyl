@@ -32,13 +32,7 @@
             <div class="col-xs-6 col-md-4">
                 </br>
                 <img src="{{ url_for('static', filename='tmp/%s' % filename) }}" alt="{{ record.title }}" style="width:300px;height:301.5px;">
-                <form name="tag_form" class="form-horizontal" method="post" role="form">
-                            {{ tag_form.hidden_tag() }}
-                            {{ wtf.form_errors(tag_form, hiddens="only") }}
 
-                            {{ wtf.form_field(tag_form.tag) }}
-                            {{ wtf.form_field(tag_form.submit) }}
-                        </form>
             </div>
             <div class="col-xs-6 col-md-4">
                 <h5>Tracklist</h5>
@@ -55,24 +49,41 @@
             </div>
 
                 <div class="col-xs-6 col-md-4">
-                        <form name="scrobble_form" class="form-horizontal" method="post" role="form">
-                            {{ scrobble_form.hidden_tag() }}
-                            {{ wtf.form_errors(scrobble_form, hiddens="only") }}
+                        {% if current_user.is_authenticated %}
+                            <form name="scrobble_form" action="#" class="form-horizontal" method="post" role="form">
+                                {{ scrobble_form.hidden_tag() }}
+                                {{ wtf.form_errors(scrobble_form, hiddens="only") }}
 
-                            {{ wtf.form_field(scrobble_form.play_date) }}
-                            {{ wtf.form_field(scrobble_form.submit, class='btn btn-success') }}
-                        </form>
-                        </br>
-                        <p id="nplays">{{ 'Total plays by you: %d' % total_user_plays }}</p>
-                        <p id="nplays">{{ 'Total plays on website: %d' % record['total_plays'] }}</p>
+                                {{ wtf.form_field(scrobble_form.play_date) }}
+                                {{ wtf.form_field(scrobble_form.submit,
+                                                class='btn btn-success') }}
+                                {{ wtf.form_field(scrobble_form.just_record_submit,
+                                                class='btn btn-warning') }}
+                            </form>
+                            </br>
+                            <p id="nplays">{{ 'Total plays by you: %d' % total_user_plays }}</p>
+                            <p id="nplays">{{ 'Total plays on website: %d' % record['total_plays'] }}</p>
+                            </br>
+                            <form name="tag_form" class="form-horizontal" method="post" role="form">
+                                {{ tag_form.hidden_tag() }}
+                                {{ wtf.form_errors(tag_form, hiddens="only") }}
 
+                                {{ wtf.form_field(tag_form.tag) }}
+                                {{ wtf.form_field(tag_form.submit) }}
+                            </form>
+                        {% else %}
+                            <p>Create an account to start scrobbling</p>
+                        {% endif %}
 
                 </div>
         </div>
         <div class="row">
-
-
         </div>
     </div>
 
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
 {% endblock %}

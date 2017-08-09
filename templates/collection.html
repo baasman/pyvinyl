@@ -30,6 +30,7 @@
 {% endblock %}
 
 {% block collection_info %}
+        {% include "flash.html" %}
         <div class="container">
             {% if user['records'] %}
                 {{ table }}

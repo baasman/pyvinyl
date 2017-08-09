@@ -5,8 +5,9 @@ from forms.misc_forms import DiscogsValidationForm, AddRecordForm, ScrobbleForm,
 from tables.collection_table import CollectionTable, CollectionItem
 from flask import request, redirect, render_template, flash, url_for, g
 from flask_login import login_user, logout_user, login_required, current_user
-from utils.scrobbler import scrobble_album
+from utils.scrobbler import scrobble_album, update_stats
 from utils.data_viz import get_items, get_most_common_genres
+from utils.images import upload_image
 
 
 import discogs_client
@@ -44,13 +45,7 @@ def explore_collection(username):
 
     images_to_display = []
     for record in records:
-        fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
-        if not os.path.exists(upload_filename):
-            with open(upload_filename, 'wb') as f:
-                f.write(record['image_binary'])
-                n = mongo.db.users.update({'user': username},
-                                          {'$push': {'tmp_files': fname}})
+        fname = upload_image(record, username)
         n_plays_by_user = top_albums.loc[top_albums.Title == record['title'], 'TimesPlayed'].values[0]
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
@@ -58,6 +53,7 @@ def explore_collection(username):
                            images_to_display=images_to_display, user=user,
                            most_common_genres=genres[:6],
                            most_common_tags=all_tags[:6])
+
 
 @app.route('/<string:username>/explore/top_genres')
 def top_genres(username):
@@ -78,7 +74,7 @@ def top_tags(username):
         {'$group': {'_id': '$tags.tag', 'count': {'$sum': 1}}},
         {'$sort': {'count': -1}}
     ]))
-    return render_template('top_tags.html', username=username,
+    return render_template('top_tags.html', user=user,
                            most_common_tags=all_tags)
 
 
@@ -88,13 +84,7 @@ def top_in_genre(username, genre):
                                      'genres': genre})
     images_to_display = []
     for record in records:
-        fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
-        if not os.path.exists(upload_filename):
-            with open(upload_filename, 'wb') as f:
-                f.write(record['image_binary'])
-                n = mongo.db.users.update({'user': username},
-                                          {'$push': {'tmp_files': fname}})
+        fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('albums_in_genre.html', images_to_display=images_to_display,
                            username=username, genre=genre)
@@ -108,16 +98,11 @@ def top_in_tag(username, tag):
         {'$match': {'tags.tag': tag}},
         {'$group': {'_id': '$tags.id'}}
     ])
+    print(list(records))
 
     images_to_display = []
     for record in records:
-        fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
-        if not os.path.exists(upload_filename):
-            with open(upload_filename, 'wb') as f:
-                f.write(record['image_binary'])
-                n = mongo.db.users.update({'user': username},
-                                          {'$push': {'tmp_files': fname}})
+        fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('albums_in_tag.html', images_to_display=images_to_display,
                            username=username, tag=tag)
@@ -136,13 +121,7 @@ def top_albums(username):
 
     images_to_display = []
     for record in records:
-        fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
-        if not os.path.exists(upload_filename):
-            with open(upload_filename, 'wb') as f:
-                f.write(record['image_binary'])
-                n = mongo.db.users.update({'user': username},
-                                          {'$push': {'tmp_files': fname}})
+        fname = upload_image(record, username)
         n_plays_by_user = top_albums.loc[top_albums.Title == record['title'], 'TimesPlayed'].values[0]
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
@@ -239,13 +218,19 @@ def add_record():
                     except:
                         image_binary = 'default_image'
                     artist_id = artists[0].id
+
+                    if not styles:
+                        styles = ''
+                    else:
+                        styles = [i for i in styles]
+
                     n = mongo.db.records.insert_one({'_id': discogs_id,
                                                      'year': int(album.year),
                                                      'title': album.title,
                                                      'artists': [i.name for i in artists],
                                                      'tracks': [i.title for i in tracklist],
                                                      'genres': [i for i in genres],
-                                                     'styles': [i for i in styles],
+                                                     'styles': styles,
                                                      'image': image,
                                                      'image_binary': image_binary,
                                                      'track_data': [i.data for i in tracklist],
@@ -263,9 +248,6 @@ def add_record():
 def album_page(username, album_id):
     user = mongo.db.users.find_one({'user': username})
     record = mongo.db.records.find_one({'_id': album_id})
-    image_binary = record['image_binary']
-    filename = 'temp_image%d.jpeg' % album_id
-    upload_filename = os.path.join(app.static_folder, 'tmp', filename)
     scrobble_form = ScrobbleForm()
     tag_form = AddTagForm()
 
@@ -279,11 +261,7 @@ def album_page(username, album_id):
     else:
         total_user_plays = 0
 
-    if not os.path.exists(upload_filename):
-        with open(upload_filename, 'wb') as f:
-            f.write(image_binary)
-            n = mongo.db.users.update({'user': username},
-                                      {'$push': {'tmp_files': filename}})
+    fname = upload_image(record, username)
 
     if request.method == 'POST':
 
@@ -316,29 +294,26 @@ def album_page(username, album_id):
                 else:
                     print('tag already exists for this album')
 
-            return render_template('album_page.html', record=record, filename=filename,
+            return render_template('album_page.html', record=record, filename=fname,
                                    scrobble_form=scrobble_form, total_user_plays=total_user_plays,
                                    tag_form=tag_form)
 
-        elif scrobble_form.submit.data and scrobble_form.validate_on_submit():
+        elif scrobble_form.validate_on_submit():
             dt = scrobble_form.play_date.data
-            scrobble_album(record=record, user=user, current_time=dt)
             has_time = record['track_data'][0]['duration'] != ''
-            n1 = mongo.db.users.update({'user': username,
-                                       'records.id': album_id},
-                                      {'$inc': {'records.$.count': 1}})
-            n2 = mongo.db.records.update({'_id': album_id},
-                                         {'$inc': {'total_plays': 1}})
-            n3 = mongo.db.records.update({'_id': album_id},
-                                         {'$push': {'plays': {'date': dt,
-                                                              'user': username}}},
-                                         upsert=True)
-            return render_template('album_page.html', record=record, filename=filename,
+            if scrobble_form.submit.data:
+                scrobble_album(record, user, dt)
+                update_stats(username, album_id, dt)
+            elif scrobble_form.just_record_submit.data:
+                update_stats(username, album_id, dt)
+            return render_template('album_page.html', record=record, filename=fname,
                                    has_time=has_time, scrobble_form=scrobble_form,
                                    total_user_plays=total_user_plays, tag_form=tag_form)
-    return render_template('album_page.html', record=record, filename=filename,
+
+    return render_template('album_page.html', record=record, filename=fname,
                            scrobble_form=scrobble_form, total_user_plays=total_user_plays,
                            tag_form=tag_form)
+
 
 
 @app.route('/')

@@ -1,4 +1,4 @@
-from app import app
+from app import app, mongo
 
 import pylast
 from flask import current_app
@@ -29,3 +29,15 @@ def scrobble_album(record, user, current_time):
             # lastfm_client.scrobble(artist=artist, title=track['title'], timestamp=lfm_timestamp)
     except:
         print(sys.exc_info()[:2])
+
+
+def update_stats(username, album_id, dt):
+    n1 = mongo.db.users.update({'user': username,
+                                'records.id': album_id},
+                               {'$inc': {'records.$.count': 1}})
+    n2 = mongo.db.records.update({'_id': album_id},
+                                 {'$inc': {'total_plays': 1}})
+    n3 = mongo.db.records.update({'_id': album_id},
+                                 {'$push': {'plays': {'date': dt,
+                                                      'user': username}}},
+                                 upsert=True)
