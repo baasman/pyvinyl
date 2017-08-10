@@ -46,19 +46,19 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('home') }}">Record Recorder</a>
+            <a class="navbar-brand" href="{{ url_for('home.homepage') }}">Record Recorder</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="{{ url_for('about') }}">About</a></li>
+                <li><a href="{{ url_for('home.about') }}">About</a></li>
                 {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('collection', username=current_user.username) }}">Collection</a></li>
-                    <li><a href="{{ url_for('explore_collection', username=current_user.username) }}">Explore</a></li>
-                    <li><a href="{{ url_for('add_record', username=current_user.username) }}">Add Record</a></li>
-                    <li><a href="{{ url_for('logout', username=current_user.username) }}">Logout</a></li>
+                    <li><a href="{{ url_for('collection.collection_page', username=current_user.username) }}">Collection</a></li>
+                    <li><a href="{{ url_for('collection.explore_collection', username=current_user.username) }}">Explore</a></li>
+                    <li><a href="{{ url_for('collection.add_record', username=current_user.username) }}">Add Record</a></li>
+                    <li><a href="{{ url_for('auth.logout', username=current_user.username) }}">Logout</a></li>
                 {% else %}
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
                 {% endif %}
             </ul>
         </div><!--/.nav-collapse -->

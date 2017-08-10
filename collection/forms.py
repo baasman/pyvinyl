@@ -1,10 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import DecimalField, StringField, SubmitField, DateTimeField, HiddenField
 from wtforms.validators import DataRequired, Optional
-from wtforms.fields.html5 import DateTimeField
 
 import datetime
-
 
 def _add_hover_to_label(title, label):
     return "<a href='#' data-toggle='tooltip' title='%s'>%s</a>" % (title, label)

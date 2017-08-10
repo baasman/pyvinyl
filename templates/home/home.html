@@ -26,11 +26,11 @@
         <h1>The Record Recorder</h1>
         <p class="lead">Scrobble your records!</p>
           {% if current_user.is_authenticated %}
-                <p><a class="btn btn-lg btn-success" href="{{ url_for('collection',
+                <p><a class="btn btn-lg btn-success" href="{{ url_for('collection.collection_page',
                     username=current_user['username']) }}"
                     role="button">Go to your collection</a></p>
           {% else %}
-                <p><a class="btn btn-lg btn-success" href="{{ url_for('register') }}"
+                <p><a class="btn btn-lg btn-success" href="{{ url_for('auth.register') }}"
                     role="button">Sign up</a></p>
           {% endif %}
       </div>
@@ -54,13 +54,13 @@
                   {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
                     {% if username != 'anonymous' %}
-                        <a href="{{ url_for('album_page', album_id=image_file[1], username=user['user']) }}">
+                        <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=user['user']) }}">
                             <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
                                  style="height: 100px; width:100px">
                             <figcaption>{{ image_file[2] }}</figcaption>
                         </a>
                     {% else %}
-                        <a href="{{ url_for('register') }}">
+                        <a href="{{ url_for('auth.register') }}">
                             <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
                                  style="height: 100px; width:100px">
                             <figcaption>{{ image_file[2] }}</figcaption>

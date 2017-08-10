@@ -3,21 +3,35 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_pymongo import PyMongo
 
-import discogs_client
-import pylast
-
 import config
 
+
 login_manager = LoginManager()
+
+mongo = PyMongo()
+
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True, static_folder='static')
     login_manager.init_app(app)
-    login_manager.login_message = 'You must be logged in Nerd'
+    login_manager.login_message = 'You must be logged in to view this page'
     login_manager.login_view = 'login'
+    mongo.init_app(app)
     Bootstrap(app)
     app.config.from_object(config.DevelopmentConfig)
     app.config.from_pyfile('config.py')
+
+    from auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+
+    from home import home as home_blueprint
+    app.register_blueprint(home_blueprint)
+
+    from collection import collection as collection_blueprint
+    app.register_blueprint(collection_blueprint)
+
+    from explore import explore as explore_blueprint
+    app.register_blueprint(explore_blueprint)
 
     if not app.debug:
         import logging
@@ -33,15 +47,3 @@ def create_app():
 
     return app
 
-app = create_app()
-mongo = PyMongo(app)
-
-user_agent = 'discogs_pyvy/1.0'
-dclient = discogs_client.Client(user_agent)
-dclient.set_consumer_key(app.config['DISCOGS_CONSUMER_KEY'], app.config['DISCOGS_CONSUMER_SECRET'])
-dclient.set_token(app.config['ACCESS_TOKEN'], app.config['ACCESS_SECRET'])
-
-lastfm_client = pylast.LastFMNetwork(api_key=app.config['LASTFM_API_KEY'],
-                                     api_secret=app.config['LASTFM_API_SECRET'])
-
-import views

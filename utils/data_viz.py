@@ -1,6 +1,6 @@
-from app import mongo, app
+from app import mongo
 from config import BREAKPOINT_VALUE
-from tables.collection_table import CollectionItem
+from collection.tables import CollectionItem
 
 from collections import Counter
 

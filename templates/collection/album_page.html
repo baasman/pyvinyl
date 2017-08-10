@@ -43,14 +43,13 @@
                         {% else %}
                             <li id="track">{{ '%s %s' % (track.position, track.title) }}</li>
                         {% endif %}
-                        </br>
                     {% endfor %}
                 </ul>
             </div>
 
                 <div class="col-xs-6 col-md-4">
                         {% if current_user.is_authenticated %}
-                            <form name="scrobble_form" action="#" class="form-horizontal" method="post" role="form">
+                            <form name="scrobble_form" class="form-horizontal" method="post" role="form">
                                 {{ scrobble_form.hidden_tag() }}
                                 {{ wtf.form_errors(scrobble_form, hiddens="only") }}
 

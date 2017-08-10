@@ -21,7 +21,7 @@
             <p>It looks like you haven't been authenticated yet with Discogs. This will allow this app to generate
                 some cool statistics for you</p>
 
-            <a href="{{ url_for('discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">
+            <a href="{{ url_for('collection.discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">
                 Get started with Discogs</a>
             </br>
         {% endif %}

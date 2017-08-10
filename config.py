@@ -3,6 +3,7 @@ class Config():
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
     SECRET_KEY = 'comeonebruh'
+    DISCOGS_USER_AGENT = 'discogs_pyvy/1.0'
 
 
 

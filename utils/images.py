@@ -1,7 +1,8 @@
-from app import app, mongo
+from flask import current_app as app
+
+from app import mongo
 
 import os
-
 
 def upload_image(record, username):
     fname = 'temp_image%s.jpeg' % record['_id']

@@ -2,7 +2,7 @@ from flask_table import Table, LinkCol, Col, DatetimeCol
 from flask import url_for
 
 class CollectionTable(Table):
-    title = LinkCol('Title', endpoint='album_page',
+    title = LinkCol('Title', endpoint='collection.album_page',
                     url_kwargs={'album_id': 'album_id', 'username': 'username'},
                     attr='title')
     artist = Col('Artist')

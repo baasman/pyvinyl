@@ -23,14 +23,16 @@
 {% endblock %}
 {% block content %}
     <div class="container">
+
         <div class="row" id="row_1">
-            <strong><h3>ALBUMS IN: {{ tag.upper() }}</h3></strong>
+            <strong><h3>MOST LISTENED TO ALBUMS</h3></strong>
             </br>
                 {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-                    <a href="{{ url_for('album_page', album_id=image_file[1], username=username) }}">
+                    <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=user['user']) }}">
                         <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
                              style="height: 150px; width:150px">
+                        <figcaption>plays: {{ image_file[2] }}</figcaption>
                     </a>
                     </div>
                 {% endfor %}
