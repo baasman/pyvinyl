@@ -20,13 +20,17 @@
             border-bottom-right-radius: 20px;
             right: 50px;
         }
+
+        small {
+            font-size: 125%;
+        }
     </style>
 {% endblock %}
 
 {% block content %}
     {% import "bootstrap/wtf.html" as wtf %}
     <div class="container">
-        <h2>{{ record['title'] }}</h2>
+        <h3>{{ record['title'] }}</h3>
         <small>{{ record['artists'][0] }}</small>
         <div class="row">
             <div class="col-xs-6 col-md-4">

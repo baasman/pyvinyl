@@ -1,13 +1,10 @@
-from flask import render_template
 import pandas as pd
+from flask import render_template
 
 from app import mongo
-
-from utils.data_viz import get_items, get_most_common_genres
-
+from app.utils.data_viz import get_items, get_most_common_genres
+from app.utils.images import upload_image
 from . import explore
-
-from utils.images import upload_image
 
 
 @explore.route('/<string:username>/explore/top_genres')

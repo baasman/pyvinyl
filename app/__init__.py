@@ -1,10 +1,9 @@
 from flask import Flask
-from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
+from flask_login import LoginManager
 from flask_pymongo import PyMongo
 
 import config
-
 
 login_manager = LoginManager()
 
@@ -21,16 +20,16 @@ def create_app():
     app.config.from_object(config.DevelopmentConfig)
     app.config.from_pyfile('config.py')
 
-    from auth import auth as auth_blueprint
+    from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
 
-    from home import home as home_blueprint
+    from app.home import home as home_blueprint
     app.register_blueprint(home_blueprint)
 
-    from collection import collection as collection_blueprint
+    from app.collection import collection as collection_blueprint
     app.register_blueprint(collection_blueprint)
 
-    from explore import explore as explore_blueprint
+    from app.explore import explore as explore_blueprint
     app.register_blueprint(explore_blueprint)
 
     if not app.debug:

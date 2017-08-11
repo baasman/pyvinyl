@@ -1,9 +1,9 @@
-from flask import request, redirect, render_template, flash, url_for, g
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import render_template
+from flask import current_app as capp
+from flask_login import current_user
 
 from . import home
 from app import mongo
-from run import app
 
 import os
 
@@ -29,7 +29,7 @@ def homepage():
     for record in recent_records:
         date = record['played'].strftime('%b-%d %H:%M')
         fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(app.static_folder, 'tmp', fname)
+        upload_filename = os.path.join(capp.static_folder, 'tmp', fname)
         if not os.path.exists(upload_filename):
             with open(upload_filename, 'wb') as f:
                 f.write(record['image_binary'])

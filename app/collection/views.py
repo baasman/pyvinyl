@@ -1,22 +1,21 @@
-from flask import request, render_template, redirect, url_for, flash
-from flask import current_app as capp
-
-from app import mongo
-from utils.data_viz import get_items, get_most_common_genres
-from utils.api_cons import create_discogs_client, create_lastfm_client
-from .tables import CollectionTable
-from . import collection
-from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
-from utils.scrobbler import scrobble_album, update_stats
-from utils.images import upload_image
-
-import pandas as pd
-import discogs_client
-from bson import Binary
-
-import requests
 import datetime
 import sys
+
+import discogs_client
+import pandas as pd
+import requests
+from bson import Binary
+from flask import current_app as capp
+from flask import request, render_template, redirect, url_for, flash
+from app.utils.data_viz import get_items, get_most_common_genres
+from app.utils.images import upload_image
+from app.utils.scrobbler import scrobble_album, update_stats
+from app import mongo
+from app.utils.api_cons import create_discogs_client, create_lastfm_client
+
+from . import collection
+from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
+from .tables import CollectionTable
 
 
 # TODO: dont forget login_required
@@ -42,7 +41,6 @@ def explore_collection(username):
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
-    df.to_csv('temp2.csv', index=False)
     genres = get_most_common_genres(df)
 
     all_tags = list(mongo.db.users.aggregate([

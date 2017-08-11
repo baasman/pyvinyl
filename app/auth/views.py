@@ -1,14 +1,13 @@
-from flask import request, redirect, render_template, flash, url_for, g
-from flask_login import login_user, logout_user, login_required, current_user
-
 import os
 import sys
 
-from app import login_manager, mongo
+from flask import request, redirect, render_template, flash, url_for
+from flask_login import login_user, logout_user
 
+from app import login_manager, mongo
+from app.user_management import User
 from . import auth
 from .forms import LoginForm, RegistrationForm
-from user_management import User
 
 
 @login_manager.user_loader
