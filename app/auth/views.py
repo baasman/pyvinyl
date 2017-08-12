@@ -2,6 +2,7 @@ import os
 import sys
 
 from flask import request, redirect, render_template, flash, url_for
+from flask import current_app as capp
 from flask_login import login_user, logout_user
 
 from app import login_manager, mongo
@@ -9,14 +10,6 @@ from app.user_management import User
 from . import auth
 from .forms import LoginForm, RegistrationForm
 
-
-@login_manager.user_loader
-def load_user(user):
-    user = mongo.db.users.find_one({'user': user})
-    if user:
-        return User(username=user['user'])
-    else:
-        return None
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -67,10 +60,15 @@ def logout():
     tmp_files = mongo.db.users.find_one({'user': username}, {'tmp_files': 1})
     for file in tmp_files['tmp_files']:
         try:
-            os.remove(os.path.join(app.static_folder, 'tmp', file))
+            os.remove(os.path.join(capp.static_folder, 'tmp', file))
         except:
             print(sys.exc_info()[:2])
     n = mongo.db.users.update({'user': username},
                               {'$set': {'tmp_files': []}})
     logout_user()
     return redirect(url_for('home.homepage'))
+
+
+@auth.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404

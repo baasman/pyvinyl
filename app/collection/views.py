@@ -7,12 +7,13 @@ import requests
 from bson import Binary
 from flask import current_app as capp
 from flask import request, render_template, redirect, url_for, flash
+from flask_login import login_required
+
 from app.utils.data_viz import get_items, get_most_common_genres
 from app.utils.images import upload_image
 from app.utils.scrobbler import scrobble_album, update_stats
-from app import mongo
+from app import mongo, login_manager
 from app.utils.api_cons import create_discogs_client, create_lastfm_client
-
 from . import collection
 from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
 from .tables import CollectionTable
@@ -21,6 +22,7 @@ from .tables import CollectionTable
 # TODO: dont forget login_required
 
 @collection.route('/collection/<username>')
+@login_required
 def collection_page(username):
     dclient = create_discogs_client(capp.config)
     sort = request.args.get('sort')
@@ -36,6 +38,7 @@ def collection_page(username):
                            client=dclient, table=table)
 
 @collection.route('/<string:username>/explore', methods=['GET', 'POST'])
+@login_required
 def explore_collection(username):
     user = mongo.db.users.find_one({'user': username})
     df_list = get_items(user, for_table=False, add_breakpoints=True)
@@ -68,6 +71,7 @@ def explore_collection(username):
                            most_common_tags=all_tags[:6])
 
 @collection.route('/add_record/', methods=['GET', 'POST'])
+@login_required
 def add_record():
 
     dclient = create_discogs_client(capp.config)

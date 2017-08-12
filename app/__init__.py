@@ -2,6 +2,7 @@ from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
+from .user_management import User
 
 import config
 
@@ -9,12 +10,20 @@ login_manager = LoginManager()
 
 mongo = PyMongo()
 
+@login_manager.user_loader
+def load_user(user):
+    user = mongo.db.users.find_one({'user': user})
+    if user:
+        return User(username=user['user'])
+    else:
+        return None
+
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True, static_folder='static')
     login_manager.init_app(app)
     login_manager.login_message = 'You must be logged in to view this page'
-    login_manager.login_view = 'login'
+    login_manager.login_view = 'auth.login'
     mongo.init_app(app)
     Bootstrap(app)
     app.config.from_object(config.DevelopmentConfig)
