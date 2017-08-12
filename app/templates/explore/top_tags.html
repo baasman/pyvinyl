@@ -62,15 +62,19 @@
         <div class="row" id="row_1">
             <strong><h3>MOST USED TAGS</h3></strong>
             </br>
-                {% for tag in most_common_tags %}
-                    <div class="imgGenreContainer" id="top_genres">
-                        <a href="{{ url_for('explore.top_in_tag', username=user['user'], tag=tag['_id']) }}">
-                            <div class="box">
-                                <p id="boxtext">{{ tag['_id'] }}: {{ tag['count'] }} </p>
-                            </div>
-                        </a>
-                    </div>
-                {% endfor %}
+                {% if most_common_tags|length == 0 %}
+                    <p>You have not added any tags yet</p>
+                {% else %}
+                    {% for tag in most_common_tags %}
+                        <div class="imgGenreContainer" id="top_genres">
+                            <a href="{{ url_for('explore.top_in_tag', username=user['user'], tag=tag['_id']) }}">
+                                <div class="box">
+                                    <p id="boxtext">{{ tag['_id'] }}: {{ tag['count'] }} </p>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% endif %}
         </div>
 
         </br>

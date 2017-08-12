@@ -9,7 +9,7 @@ from flask import current_app as capp
 from flask import request, render_template, redirect, url_for, flash
 from flask_login import login_required
 
-from app.utils.data_viz import get_items, get_most_common_genres
+from app.utils.data_viz import get_items, get_most_common_genres, convert_df_to_items_and_sort
 from app.utils.images import upload_image
 from app.utils.scrobbler import scrobble_album, update_stats
 from app import mongo, login_manager
@@ -17,18 +17,18 @@ from app.utils.api_cons import create_discogs_client, create_lastfm_client
 from . import collection
 from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
 from .tables import CollectionTable
-
-
-# TODO: dont forget login_required
+from config import ALBUMS_PER_PAGE
 
 @collection.route('/collection/<username>')
 @login_required
-def collection_page(username):
+def collection_page(username, page=1):
     dclient = create_discogs_client(capp.config)
-    sort = request.args.get('sort')
-    reverse = (request.args.get('direction', 'asc') == 'desc')
     user = mongo.db.users.find_one({'user': username})
     items = get_items(user, for_table=True)
+    df = get_items(user, for_table=False)
+    df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
+                                        'TimesPlayed', 'DateAdded'])
+    items = convert_df_to_items_and_sort(df, user=user, sort_on='DateAdded')
 
     if len(items) > 0:
         table = CollectionTable(items)
@@ -140,6 +140,7 @@ def add_record():
     return render_template('collection/add_record.html', form=form)
 
 @collection.route('/user/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
+@login_required
 def album_page(username, album_id):
     user = mongo.db.users.find_one({'user': username})
     record = mongo.db.records.find_one({'_id': album_id})

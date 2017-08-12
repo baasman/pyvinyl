@@ -38,6 +38,19 @@ def get_items(user, for_table=True, add_breakpoints=False):
                                 x.date_added])
     return col_list
 
+def convert_df_to_items_and_sort(df, user, sort_on=None, ascending=False):
+    '''sort_on: can be list of keys'''
+    if sort_on:
+        df = df.sort_values(sort_on, ascending=ascending)
+
+    col_list = []
+    for idx, row in df.iterrows():
+        album_id = mongo.db.records.find_one({'title': row['Title']}, {'_id': 1})
+        col_list.append(CollectionItem(row['Title'], row['Artist'], row['Year'], row['Genre'], row['Style'],
+                         row['TimesPlayed'], row['DateAdded'], album_id['_id'], user['user']))
+    return col_list
+
+
 def get_most_common_genres(df):
 
     def remove_start(s):

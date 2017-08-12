@@ -3,8 +3,15 @@
     <style>
         .form-control {
             width: 400px;
+        }
+
+        .input-group-addon {
+            height: 50px;
+            margin-right: 0px;
+
 
         }
+
     </style>
 {% endblock %}
 {% block content %}
@@ -17,7 +24,6 @@
                 <form class="form-horizontal" method="post" role="form">
                     {{ form.hidden_tag() }}
                     {{ wtf.form_errors(form, hiddens="only") }}
-
                     {{ wtf.form_field(form.user) }}
                     {{ wtf.form_field(form.password) }}
                     {{ wtf.form_field(form.submit, class='btn btn-success') }}

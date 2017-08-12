@@ -22,3 +22,5 @@ app_config = {
 }
 
 BREAKPOINT_VALUE = '|'
+
+ALBUMS_PER_PAGE = 10
