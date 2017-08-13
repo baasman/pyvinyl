@@ -29,6 +29,7 @@
 
 {% block content %}
     {% import "bootstrap/wtf.html" as wtf %}
+    {% include "flash.html" %}
     <div class="container">
         <h3>{{ record['title'] }}</h3>
         <small>{{ record['artists'][0] }}</small>

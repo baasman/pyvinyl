@@ -20,12 +20,15 @@ def load_user(user):
 
 
 def create_app(config):
+
     app = Flask(__name__, instance_relative_config=True, static_folder='static')
+
     login_manager.init_app(app)
     login_manager.login_message = 'You must be logged in to view this page'
     login_manager.login_view = 'auth.login'
 
     Bootstrap(app)
+
     app.config.from_object(app_config[config])
     app.config.from_pyfile('config.py')
 

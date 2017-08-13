@@ -203,6 +203,7 @@ def album_page(username, album_id):
                 update_stats(username, album_id, dt)
             elif scrobble_form.just_record_submit.data:
                 update_stats(username, album_id, dt)
+            flash('Album recorded!', category='Success')
             return render_template('collection/album_page.html', record=record, filename=fname,
                                    has_time=has_time, scrobble_form=scrobble_form,
                                    total_user_plays=total_user_plays, tag_form=tag_form)
