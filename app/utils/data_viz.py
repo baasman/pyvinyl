@@ -6,7 +6,6 @@ from config import BREAKPOINT_VALUE
 
 
 def get_items(user, for_table=True, add_breakpoints=False):
-    print(BREAKPOINT_VALUE)
     all_records = user['records']
     record_dict = {i['id']: [i['count'], i['date_added']] for i in all_records}
     col_list = []

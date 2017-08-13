@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from flask_pymongo import PyMongo
 from .user_management import User
 
-import config
+from config import app_config
 
 login_manager = LoginManager()
 
@@ -19,15 +19,20 @@ def load_user(user):
         return None
 
 
-def create_app():
+def create_app(config):
     app = Flask(__name__, instance_relative_config=True, static_folder='static')
     login_manager.init_app(app)
     login_manager.login_message = 'You must be logged in to view this page'
     login_manager.login_view = 'auth.login'
-    mongo.init_app(app)
+
     Bootstrap(app)
-    app.config.from_object(config.DevelopmentConfig)
+    app.config.from_object(app_config[config])
     app.config.from_pyfile('config.py')
+
+    if app.testing:
+        mongo.init_app(app, config_prefix='MONGO2')
+    else:
+        mongo.init_app(app)
 
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
@@ -41,7 +46,7 @@ def create_app():
     from app.explore import explore as explore_blueprint
     app.register_blueprint(explore_blueprint)
 
-    if not app.debug:
+    if not app.debug and not app.testing:
         import logging
         from logging.handlers import RotatingFileHandler
         file_handler = RotatingFileHandler('tmp/record_recorder.log', 'a',
