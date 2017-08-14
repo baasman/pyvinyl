@@ -1,5 +1,6 @@
 import datetime
 import sys
+import math
 
 import discogs_client
 import pandas as pd
@@ -12,16 +13,23 @@ from flask_login import login_required
 from app.utils.data_viz import get_items, get_most_common_genres, convert_df_to_items_and_sort
 from app.utils.images import upload_image
 from app.utils.scrobbler import scrobble_album, update_stats
-from app import mongo, login_manager
+from app import mongo
 from app.utils.api_cons import create_discogs_client, create_lastfm_client
 from . import collection
 from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
 from .tables import CollectionTable
-from config import ALBUMS_PER_PAGE
 
-@collection.route('/collection/<username>')
+@collection.route('/u/<username>/collection/')
+@collection.route('/u/<username>/collection/p/<int:page>')
 @login_required
-def collection_page(username, page=1):
+def collection_page(username, page=0):
+
+    ALBUMS_PER_PAGE = request.args.get('albums_per_page')
+    if not ALBUMS_PER_PAGE:
+        ALBUMS_PER_PAGE = 10
+    else:
+        ALBUMS_PER_PAGE = int(ALBUMS_PER_PAGE)
+
     dclient = create_discogs_client(capp.config)
     user = mongo.db.users.find_one({'user': username})
     items = get_items(user, for_table=True)
@@ -29,15 +37,18 @@ def collection_page(username, page=1):
     df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     items = convert_df_to_items_and_sort(df, user=user, sort_on='DateAdded')
+    n_pages = list(range(math.ceil(len(items) / ALBUMS_PER_PAGE)))
 
-    if len(items) > 0:
-        table = CollectionTable(items)
+    sub_items = items[ALBUMS_PER_PAGE * page : (page * ALBUMS_PER_PAGE) + ALBUMS_PER_PAGE]
+
+    if len(sub_items) > 0:
+        table = CollectionTable(sub_items)
     else:
         table = None
     return render_template('collection/collection.html', username=username, user=user,
-                           client=dclient, table=table)
+                           client=dclient, table=table, pages=n_pages)
 
-@collection.route('/<string:username>/explore', methods=['GET', 'POST'])
+@collection.route('/u/<string:username>/explore', methods=['GET', 'POST'])
 @login_required
 def explore_collection(username):
     user = mongo.db.users.find_one({'user': username})
@@ -139,7 +150,7 @@ def add_record():
                                     user=mongo.db.users.find_one({'user': username})))
     return render_template('collection/add_record.html', form=form)
 
-@collection.route('/user/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
+@collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
 @login_required
 def album_page(username, album_id):
     user = mongo.db.users.find_one({'user': username})

@@ -25,7 +25,8 @@
             margin-bottom: 20px;
         }
         .footer {
-              position: absolute;
+              position: relative;
+              margin-top: 100px;
               bottom: 0px;
 {#              width: 80%;#}
               /* Set the fixed height of the footer here */
@@ -69,6 +70,7 @@
     {% block content %} {% endblock %}
     {% block collection_info %} {% endblock %}
 
+    <div class="push"></div>
     <div id="footer" style="white-space: nowrap">
         <div class="container text-left">
             <footer class="footer">

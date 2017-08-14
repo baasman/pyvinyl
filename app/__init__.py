@@ -35,7 +35,7 @@ def create_app(config):
     if app.testing:
         mongo.init_app(app, config_prefix='MONGO2')
     else:
-        mongo.init_app(app)
+        mongo.init_app(app, config_prefix='MONGO')
 
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
@@ -62,4 +62,3 @@ def create_app(config):
         app.logger.info('Record record startup')
 
     return app
-
