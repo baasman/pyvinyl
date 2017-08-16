@@ -1,0 +1,17 @@
+{% macro show_image(image, username, view, caption=True) %}
+    {% if image[0] == 'use_default' %}
+        <a href="{{ url_for(view, album_id=image[1], username=username) }}">
+            <img src="{{ url_for('static', filename='img/stock-vinyl.jpg') }}" id='thumb_image'>
+            {% if caption %}
+                <figcaption>{{ image[2] }}</figcaption>
+            {% endif %}
+        </a>
+    {% else %}
+        <a href="{{ url_for(view, album_id=image[1], username=username) }}">
+            <img src="{{ url_for('static', filename='tmp/%s' % image[0]) }}" id='thumb_image'>
+            {% if caption %}
+                <figcaption>{{ image[2] }}</figcaption>
+            {% endif %}
+        </a>
+    {% endif %}
+{% endmacro %}

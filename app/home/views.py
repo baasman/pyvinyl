@@ -28,14 +28,18 @@ def homepage():
     images_to_display = []
     for record in recent_records:
         date = record['played'].strftime('%b-%d %H:%M')
-        fname = 'temp_image%s.jpeg' % record['_id']
-        upload_filename = os.path.join(capp.static_folder, 'tmp', fname)
-        if not os.path.exists(upload_filename):
-            with open(upload_filename, 'wb') as f:
-                f.write(record['image_binary'])
-                if username != 'anonymous':
-                    n = mongo.db.users.update({'user': username},
-                                              {'$push': {'tmp_files': fname}})
+        if record['image_binary'] != 'default_image':
+            fname = 'temp_image%s.jpeg' % record['_id']
+            upload_filename = os.path.join(capp.static_folder, 'tmp', fname)
+            if not os.path.exists(upload_filename):
+                with open(upload_filename, 'wb') as f:
+                    print(record['_id'])
+                    f.write(record['image_binary'])
+                    if username != 'anonymous':
+                        n = mongo.db.users.update({'user': username},
+                                                  {'$push': {'tmp_files': fname}})
+        else:
+            fname = 'use_default'
         images_to_display.append((fname, record['_id'], date))
 
     return render_template('home/home.html', images_to_display=images_to_display, user=user,

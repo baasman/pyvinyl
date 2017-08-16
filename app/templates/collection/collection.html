@@ -62,7 +62,7 @@
                 </div>
                 {% for page in pages %}
                     <a href="{{ url_for('collection.collection_page', page=page, username=user['user']) }}"
-                       class="btn btn-default">{{ page }}</a>
+                       class="btn btn-default">{{ page + 1 }}</a>
                 {% endfor %}
             </div>
         </div>

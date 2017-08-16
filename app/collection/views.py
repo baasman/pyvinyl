@@ -32,7 +32,6 @@ def collection_page(username, page=0):
 
     dclient = create_discogs_client(capp.config)
     user = mongo.db.users.find_one({'user': username})
-    items = get_items(user, for_table=True)
     df = get_items(user, for_table=False)
     df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])

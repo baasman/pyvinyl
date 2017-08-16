@@ -19,19 +19,22 @@
             text-align: center;
         }
 
+        #thumb_image {
+            height: 150px;
+            width: 150px;
+        }
+
     </style>
 {% endblock %}
 {% block content %}
     <div class="container">
         <div class="row" id="row_1">
+            {% from "macros.html" import show_image %}
             <strong><h3>ALBUMS IN: {{ tag.upper() }}</h3></strong>
             </br>
                 {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-                    <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=username) }}">
-                        <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
-                             style="height: 150px; width:150px">
-                    </a>
+                    {{ show_image(image_file, username, 'collection.album_page', caption=False) }}
                     </div>
                 {% endfor %}
         </div>

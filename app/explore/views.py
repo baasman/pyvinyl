@@ -7,7 +7,7 @@ from app.utils.images import upload_image
 from . import explore
 
 
-@explore.route('/<string:username>/explore/top_genres')
+@explore.route('/u/<string:username>/explore/top_genres')
 def top_genres(username):
     user = mongo.db.users.find_one({'user': username})
     df_list = get_items(user, for_table=False, add_breakpoints=True)
@@ -16,7 +16,7 @@ def top_genres(username):
     genres = get_most_common_genres(df)
     return render_template('explore/top_genres.html', username=username, most_common_genres=genres)
 
-@explore.route('/<string:username>/explore/top_tags')
+@explore.route('/u/<string:username>/explore/top_tags')
 def top_tags(username):
     user = mongo.db.users.find_one({'user': username})
     all_tags = list(mongo.db.users.aggregate([
@@ -30,7 +30,7 @@ def top_tags(username):
                            most_common_tags=all_tags)
 
 
-@explore.route('/<string:username>/explore/<string:genre>')
+@explore.route('/u/<string:username>/explore/<string:genre>')
 def top_in_genre(username, genre):
     records = mongo.db.records.find({'plays.user': username,
                                      'genres': genre})
@@ -41,7 +41,7 @@ def top_in_genre(username, genre):
     return render_template('explore/albums_in_genre.html', images_to_display=images_to_display,
                            username=username, genre=genre)
 
-@explore.route('/<string:username>/explore/tags/<string:tag>')
+@explore.route('/u/<string:username>/explore/tags/<string:tag>')
 def top_in_tag(username, tag):
     records = mongo.db.users.aggregate([
         {'$match': {'user': username}},
@@ -53,13 +53,14 @@ def top_in_tag(username, tag):
 
     images_to_display = []
     for record in records:
+        record = mongo.db.records.find_one({'_id': record['_id']}, {'_id': 1, 'image_binary': 1})
         fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('explore/albums_in_tag.html', images_to_display=images_to_display,
                            username=username, tag=tag)
 
 
-@explore.route('/<string:username>/explore/top_albums')
+@explore.route('/u/<string:username>/explore/top_albums')
 def top_albums(username):
     user = mongo.db.users.find_one({'user': username})
     df_list = get_items(user, for_table=False)
@@ -77,4 +78,4 @@ def top_albums(username):
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
     return render_template('explore/top_albums.html', images_to_display=images_to_display,
-                           user=user)
+                           username=username)
