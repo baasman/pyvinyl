@@ -12,9 +12,6 @@ def upload_image(record, username):
         if not os.path.exists(upload_filename):
             with open(upload_filename, 'wb') as f:
                 f.write(record['image_binary'])
-                if username != 'anonymous':
-                    n = mongo.db.users.update({'user': username},
-                                              {'$push': {'tmp_files': fname}})
     else:
         fname = 'use_default'
     return fname

@@ -66,6 +66,11 @@
             vertical-align: top;
         }
 
+        #thumb_image {
+            width: 150px;
+            height: 150px;
+        }
+
     </style>
 {% endblock %}
 {% block content %}
@@ -73,14 +78,16 @@
 
         <div class="row" id="row_1">
             <strong><h3>MOST LISTENED TO ALBUMS</h3></strong>
+            {% from "macros.html" import show_image %}
             </br>
                 {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-                    <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=user['user']) }}">
-                        <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"
-                             style="height: 150px; width:150px">
-                        <figcaption>plays: {{ image_file[2] }}</figcaption>
-                    </a>
+{#                    <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=user['user']) }}">#}
+{#                        <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"#}
+{#                             style="height: 150px; width:150px">#}
+{#                        <figcaption>plays: {{ image_file[2] }}</figcaption>#}
+{#                    </a>#}
+                    {{ show_image(image_file, user['user'], 'collection.album_page', caption=True) }}
                     </div>
                 {% endfor %}
                 <div class="imgContainer">

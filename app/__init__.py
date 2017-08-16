@@ -49,6 +49,9 @@ def create_app(config):
     from app.explore import explore as explore_blueprint
     app.register_blueprint(explore_blueprint)
 
+    from app.errors import errors as errors_blueprint
+    app.register_blueprint(errors_blueprint)
+
     if not app.debug and not app.testing:
         import logging
         from logging.handlers import RotatingFileHandler

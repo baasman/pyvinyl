@@ -1,7 +1,7 @@
 import os
 import sys
 
-from flask import request, redirect, render_template, flash, url_for
+from flask import request, redirect, render_template, flash, url_for, abort
 from flask import current_app as capp
 from flask_login import login_user, logout_user
 
@@ -14,6 +14,7 @@ from .forms import LoginForm, RegistrationForm
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+
     if request.method == 'POST': # and form.validate_on_submit():
         user = mongo.db.users.find_one({'user': form.user.data})
         if user and User.validate_login(user['password_hash'], form.password.data):
@@ -57,8 +58,9 @@ def register():
 @auth.route('/logout')
 def logout():
     username = request.args.get('username')
-    tmp_files = mongo.db.users.find_one({'user': username}, {'tmp_files': 1})
-    for file in tmp_files['tmp_files']:
+    tmp_files = os.listdir(os.path.join(capp.static_folder, 'tmp'))
+    for file in tmp_files:
+        print(os.path.join(capp.static_folder, 'tmp', file))
         try:
             os.remove(os.path.join(capp.static_folder, 'tmp', file))
         except:
@@ -67,8 +69,3 @@ def logout():
                               {'$set': {'tmp_files': []}})
     logout_user()
     return redirect(url_for('home.homepage'))
-
-
-@auth.errorhandler(404)
-def not_found_error(error):
-    return render_template('404.html'), 404
