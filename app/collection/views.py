@@ -178,27 +178,27 @@ def album_page(username, album_id):
                 tags = tags.replace(' ', '')
                 tags = tags.split(',')
                 for tag in tags:
-                    exists = mongo.db.users.find_one({'user': username,
-                                                      'tags': {'$elemMatch':
-                                                                   {'tags.id': album_id,
-                                                                    'tags.tag': tag}}})
+                    exists = list(mongo.db.users.aggregate([
+                        {'$unwind': '$tags'},
+                        {'$match': {'tags.tag': tags, 'tags.id': album_id}}
+                    ]))
                     if not exists:
                         n1 = mongo.db.users.update({'user': username},
                                                    {'$push': {'tags': {'tag': tag,
                                                                        'id': album_id}}})
                     else:
-                        print('tag already exists for this album')
+                        flash('tag already exists for this album', category='Warning')
             else:
-                exists = mongo.db.users.find_one({'user': username,
-                                                  'tags': {'$elemMatch':
-                                                               {'tags.id': album_id,
-                                                                'tags.tag': tags}}})
+                exists = list(mongo.db.users.aggregate([
+                    {'$unwind': '$tags'},
+                    {'$match': {'tags.tag': tags, 'tags.id': album_id}}
+                ]))
                 if not exists:
                     n1 = mongo.db.users.update({'user': username},
                                                {'$push': {'tags': {'tag': tags,
                                                                'id': album_id}}})
                 else:
-                    print('tag already exists for this album')
+                    flash('tag already exists for this album', category='Warning')
 
             return render_template('collection/album_page.html', record=record, filename=fname,
                                    scrobble_form=scrobble_form, total_user_plays=total_user_plays,
