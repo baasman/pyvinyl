@@ -8,4 +8,4 @@ Record Recorder is a simple Flask webapp to do the following:
 3. Visualize and generate statistics for your collection of records.
 
 Here's a screen shot of a home page:
-![homepage](https://github.com/baasman/pyvinyl/blob/master/static/img/homepage.png)
+![homepage](https://github.com/baasman/pyvinyl/blob/master/app/static/img/homepage.png)
