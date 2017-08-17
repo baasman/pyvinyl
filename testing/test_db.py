@@ -10,3 +10,4 @@ class TestDatabase():
     def test_mongo(self, app, mongodb):
         with app.app_context():
             assert mongodb.db.name == 'test'
+            assert mongodb.db.users.count() > 0

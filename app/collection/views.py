@@ -232,7 +232,7 @@ def discogs_setup(username):
                                             {'token': token,
                                             'secret': secret}}})
     form = DiscogsValidationForm()
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
         oath_code = form.code.data
         access_token, access_secret = dclient.get_access_token(oath_code)
         n = mongo.db.users.update({'user': username},

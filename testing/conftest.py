@@ -33,6 +33,16 @@ def add_non_lfm_user(faker):
                     'count': random.choice(list(range(20)))},
                    ]
 
+    tags_list = [{'id': 10276599, 'tag': faker.color_name()},
+                 {'id': 4418602, 'tag': faker.color_name()},
+                 {'id': 8888892, 'tag': faker.color_name()},
+                 {'id': 9687733, 'tag': faker.color_name()},
+                 {'id': 6549215, 'tag': faker.color_name()},
+                 {'id': 6549215, 'tag': faker.color_name()}
+                 ]
+
+    sample_records = random.sample(record_list, random.randint(1, len(record_list)))
+    tags_list = [i for i in tags_list if i['id'] in [j['id'] for j in sample_records]]
     email = faker.safe_email()
 
     n = mongo.db.users.insert_one({'user': username,
@@ -40,8 +50,9 @@ def add_non_lfm_user(faker):
                                    'password_hash': password,
                                    'lastfm_username': lastfm_username,
                                    'lastfm_password': passwordfm,
-                                   'records': random.sample(record_list, random.randint(1, len(record_list))),
+                                   'records': sample_records,
                                    'tmp_files': [],
+                                   'tags': tags_list,
                                    'discogs_info': {'oath_token': None,
                                                     'token': None,
                                                     'secret': None}})

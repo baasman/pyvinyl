@@ -12,6 +12,9 @@ class DiscogsValidationForm(FlaskForm):
     code = StringField('Code given by discogs', validators=[DataRequired])
     submit = SubmitField('Register')
 
+    def validate(self):
+        return True
+
 
 class AddTagForm(FlaskForm):
     tag = StringField('Tag for album')
