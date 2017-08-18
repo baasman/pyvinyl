@@ -5,12 +5,10 @@ class Config():
 
     MONGO_HOST = 'ds151163.mlab.com'
     MONGO_PORT = 51163
-    MONGO_USERNAME = 'baasman'
     MONGO_DBNAME = 'app'
 
     MONGO2_DBNAME = 'test'
 
-    SECRET_KEY = 'somethingsecret'
     DISCOGS_USER_AGENT = 'discogs_pyvy/1.0'
 
 

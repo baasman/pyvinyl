@@ -4,7 +4,6 @@ from app import mongo
 from app.collection.tables import CollectionItem
 from config import BREAKPOINT_VALUE
 
-from app.models import RecordModel
 
 def get_items(user, for_table=True, add_breakpoints=False):
     all_records = user['records']
