@@ -1,9 +1,16 @@
+import os
+
 class Config():
     DEBUG = False
-    MONGO_HOST = 'localhost'
-    MONGO_PORT = 27017
+
+    MONGO_HOST = 'ds151163.mlab.com'
+    MONGO_PORT = 51163
+    MONGO_USERNAME = 'baasman'
+    MONGO_DBNAME = 'app'
+
     MONGO2_DBNAME = 'test'
-    SECRET_KEY = 'comeonebruh'
+
+    SECRET_KEY = 'somethingsecret'
     DISCOGS_USER_AGENT = 'discogs_pyvy/1.0'
 
 
@@ -13,6 +20,10 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+
+    MONGO2_HOST = 'localhost'
+    MONGO2_PORT = 27017
+
     TESTING = True
     DEBUG = False
     CSRF_ENABLED = False
