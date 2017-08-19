@@ -10,28 +10,27 @@
             border: 1px solid black;
             text-align: center;
         }
-        #page_buttons {
+        .page_buttons {
             display: inline;
         }
 
     </style>
 {% endblock %}
-{% block content %}
-    <div class="container">
-        {% if user['discogs_info']['oauth_code'] %}
-            </br>
-        {% else %}
-            <p>It looks like you haven't been authenticated yet with Discogs. This will allow this app to generate
-                some cool statistics for you</p>
-
-            <a href="{{ url_for('collection.discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">
-                Get started with Discogs</a>
-            </br>
-        {% endif %}
-    </div>
-
-{% endblock %}
-
+{#{% block content %}#}
+{#    <div class="container">#}
+{#        {% if user['discogs_info']['oauth_code'] %}#}
+{#            </br>#}
+{#        {% else %}#}
+{#            <p>It looks like you haven't been authenticated yet with Discogs. This will allow this app to generate#}
+{#                some cool statistics for you</p>#}
+{##}
+{#            <a href="{{ url_for('collection.discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">#}
+{#                Get started with Discogs</a>#}
+{#            </br>#}
+{#        {% endif %}#}
+{#    </div>#}
+{##}
+{#{% endblock %}#}
 {% block collection_info %}
     {% include "flash.html" %}
     <div class="container">
@@ -44,7 +43,7 @@
                     <p>You have not added any records yet</p>
                 {% endif %}
             </div>
-            <div id="page_buttons">
+            <div class="page_buttons">
                 <div class="btn-group">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                        Show  <span class="caret"></span>

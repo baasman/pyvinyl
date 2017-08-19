@@ -152,7 +152,6 @@ def add_record():
     return render_template('collection/add_record.html', form=form)
 
 
-# TODO: able to delete record from page
 @collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def album_page(username, album_id):
@@ -224,7 +223,8 @@ def album_page(username, album_id):
                                    total_user_plays=total_user_plays, tag_form=tag_form,
                                    delete_form=delete_form)
 
-        elif delete_form.data and delete_form.validate_on_submit():
+        elif request.method == 'POST' and delete_form.delete.data and delete_form.validate_on_submit():
+
             try:
                 mongo.db.records.delete_one({'_id': album_id})
                 mongo.db.users.update({'user': username},

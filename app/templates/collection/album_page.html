@@ -24,6 +24,21 @@
         small {
             font-size: 125%;
         }
+
+        #warning {
+            color: red;
+            font-size: small;
+        }
+
+        #dbutton {
+            font-size: 10px;
+            padding: 5px 5px;
+        }
+
+        .inline_warning {
+            display: inline;
+            float: left;
+        }
     </style>
 {% endblock %}
 
@@ -79,8 +94,11 @@
                             <form name="delete_form" class="form-horizontal" method="post" role="form">
                                 {{ delete_form.hidden_tag() }}
                                 {{ wtf.form_errors(delete_form, hiddens="only") }}
+                                <div class="inline_warning">
+                                    {{ wtf.form_field(delete_form.delete, id='dbutton', class='btn btn-danger') }}
+                                    <p id="warning">Warning: This will also delete all tags and plays</p>
+                                </div>
 
-                                {{ wtf.form_field(delete_form.delete, class='btn btn-danger') }}
                             </form>
                         {% else %}
                             <p>Create an account to start scrobbling</p>
