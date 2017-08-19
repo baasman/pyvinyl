@@ -16,8 +16,10 @@ from app.utils.scrobbler import scrobble_album, update_stats
 from app import mongo
 from app.utils.api_cons import create_discogs_client, create_lastfm_client
 from . import collection
-from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm
+from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm, DeleteForm
 from .tables import CollectionTable
+
+
 
 @collection.route('/u/<username>/collection/')
 @collection.route('/u/<username>/collection/p/<int:page>')
@@ -149,13 +151,16 @@ def add_record():
                                     user=mongo.db.users.find_one({'user': username})))
     return render_template('collection/add_record.html', form=form)
 
-@collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST'])
+
+# TODO: able to delete record from page
+@collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def album_page(username, album_id):
     user = mongo.db.users.find_one({'user': username})
     record = mongo.db.records.find_one({'_id': album_id})
     scrobble_form = ScrobbleForm()
     tag_form = AddTagForm()
+    delete_form = DeleteForm()
 
     total_user_plays = mongo.db.users.find_one(
         {'user': username, 'records.id': album_id},
@@ -202,7 +207,7 @@ def album_page(username, album_id):
 
             return render_template('collection/album_page.html', record=record, filename=fname,
                                    scrobble_form=scrobble_form, total_user_plays=total_user_plays,
-                                   tag_form=tag_form)
+                                   tag_form=tag_form, delete_form=delete_form)
 
         elif scrobble_form.validate_on_submit():
             dt = scrobble_form.play_date.data
@@ -216,11 +221,23 @@ def album_page(username, album_id):
             flash('Album recorded!', category='Success')
             return render_template('collection/album_page.html', record=record, filename=fname,
                                    has_time=has_time, scrobble_form=scrobble_form,
-                                   total_user_plays=total_user_plays, tag_form=tag_form)
+                                   total_user_plays=total_user_plays, tag_form=tag_form,
+                                   delete_form=delete_form)
+
+        elif delete_form.data and delete_form.validate_on_submit():
+            try:
+                mongo.db.records.delete_one({'_id': album_id})
+                mongo.db.users.update({'user': username},
+                                      {'$pull': {'records': {'id': album_id}}})
+                mongo.db.users.update({'user': username},
+                                      {'$pull': {'tags': {'id': album_id}}})
+            except:
+                pass
+            return redirect(url_for('collection.collection_page', username=username))
 
     return render_template('collection/album_page.html', record=record, filename=fname,
                            scrobble_form=scrobble_form, total_user_plays=total_user_plays,
-                           tag_form=tag_form)
+                           tag_form=tag_form, delete_form=delete_form)
 
 @collection.route('/discogs_setup/<username>', methods=['GET', 'POST'])
 def discogs_setup(username):

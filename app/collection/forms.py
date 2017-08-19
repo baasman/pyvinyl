@@ -60,3 +60,12 @@ class ScrobbleForm(FlaskForm):
             return True
         else:
             False
+
+class DeleteForm(FlaskForm):
+
+    delete = SubmitField('X')
+
+    def validate(self):
+        if self.delete.data:
+            return True
+        return False

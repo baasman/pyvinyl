@@ -49,7 +49,7 @@ def register():
                                                             'secret': None}})
             login_user(user_obj)
             flash('Thanks for registering')
-            return redirect(url_for('collection', username=user_obj.username))
+            return redirect(url_for('collection.collection_page', username=user_obj.username))
         except:
             print(sys.exc_info()[:2])
     return render_template('auth/register.html', form=reg_form)

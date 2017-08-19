@@ -75,6 +75,13 @@
                                 {{ wtf.form_field(tag_form.tag) }}
                                 {{ wtf.form_field(tag_form.submit) }}
                             </form>
+                            </br>
+                            <form name="delete_form" class="form-horizontal" method="post" role="form">
+                                {{ delete_form.hidden_tag() }}
+                                {{ wtf.form_errors(delete_form, hiddens="only") }}
+
+                                {{ wtf.form_field(delete_form.delete, class='btn btn-danger') }}
+                            </form>
                         {% else %}
                             <p>Create an account to start scrobbling</p>
                         {% endif %}
