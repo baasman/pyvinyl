@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    {% import "bootstrap/wtf.html" as wtf %}
+    <div class="container">
+        <div class="'row">
+            <p>Visit this <a href="{{ url }}" target="_blank">url</a> to authorize this application to scrobble your albums,
+                then confirm</p>
+            <form name="fm_form" class="form-horizontal" method="post" role="form">
+                    {{ fm_form.hidden_tag() }}
+                    {{ wtf.form_errors(fm_form, hiddens="only") }}
+                    {{ wtf.form_field(fm_form.confirm, class='btn btn-info') }}
+                </form>
+        </div>
+    </div>
+
+{% endblock %}
+

@@ -8,7 +8,7 @@ import requests
 from bson import Binary
 from flask import current_app as capp
 from flask import request, render_template, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.utils.data_viz import get_items, get_most_common_genres, convert_df_to_items_and_sort
 from app.utils.images import upload_image
@@ -101,7 +101,7 @@ def add_record():
         if mongo.db.users.find_one({'user': username,
                                     'records': {'$in': [discogs_id]}}) is not None:
             flash('Album already in collection')
-            return redirect(url_for('collection', username=username, user=user))
+            return redirect(url_for('collection.collection_page', username=username, user=user))
         else:
             n = mongo.db.users.update({'user': username}, {'$addToSet': {'records':
                                                                              {'id': discogs_id,
@@ -153,7 +153,6 @@ def add_record():
 
 
 @collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST', 'DELETE'])
-@login_required
 def album_page(username, album_id):
     user = mongo.db.users.find_one({'user': username})
     record = mongo.db.records.find_one({'_id': album_id})
@@ -212,7 +211,10 @@ def album_page(username, album_id):
             dt = scrobble_form.play_date.data
             has_time = record['track_data'][0]['duration'] != ''
             if scrobble_form.submit.data:
-                lfclient = create_lastfm_client(capp.config, username, user['lastfm_password'])
+                try:
+                    lfclient = create_lastfm_client(capp.config, user)
+                except:
+                    redirect(url_for('auth.lastfm_setup', username=username))
                 scrobble_album(lfclient, record, dt)
                 update_stats(username, album_id, dt)
             elif scrobble_form.just_record_submit.data:

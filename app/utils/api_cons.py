@@ -8,9 +8,13 @@ def create_discogs_client(config):
     dclient.set_token(config['ACCESS_TOKEN'], config['ACCESS_SECRET'])
     return dclient
 
-def create_lastfm_client(config, username, password_hash):
-    lastfm_client = pylast.LastFMNetwork(api_key=config['LASTFM_API_KEY'],
-                                         api_secret=config['LASTFM_API_SECRET'],
-                                         username=username,
-                                         password_hash=password_hash)
+def create_lastfm_client(config, user):
+    if user['lfm_is_authenticated']:
+        lastfm_client = pylast.LastFMNetwork(api_key=config['LASTFM_API_KEY'],
+                                             api_secret=config['LASTFM_API_SECRET'],
+                                             username=user['lastfm_username'],
+                                             password_hash=user['lastfm_password'],
+                                             session_key=user['lfm_session_key'])
+    else:
+        raise Exception
     return lastfm_client
