@@ -1,8 +1,10 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
 from .user_management import User
+
+from app.exceptions import not_found_error, server_error
 
 from config import app_config
 
@@ -49,8 +51,8 @@ def create_app(config):
     from app.explore import explore as explore_blueprint
     app.register_blueprint(explore_blueprint)
 
-    from app.errors import errors as errors_blueprint
-    app.register_blueprint(errors_blueprint)
+    app.register_error_handler(500, server_error)
+    app.register_error_handler(404, not_found_error)
 
     if not app.debug and not app.testing:
         import logging

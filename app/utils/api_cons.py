@@ -1,6 +1,8 @@
 import discogs_client
 import pylast
 
+from app.exceptions import LFMAPIError
+
 def create_discogs_client(config):
     user_agent = 'discogs_pyvy/1.0'
     dclient = discogs_client.Client(user_agent)
@@ -16,5 +18,5 @@ def create_lastfm_client(config, user):
                                              password_hash=user['lastfm_password'],
                                              session_key=user['lfm_session_key'])
     else:
-        raise Exception
+        raise LFMAPIError
     return lastfm_client

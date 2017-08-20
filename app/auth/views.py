@@ -57,6 +57,7 @@ def register():
             return redirect(url_for('collection.collection_page', username=user_obj.username))
         except:
             print(sys.exc_info()[:2])
+            return redirect(url_for('errors.server_error'))
     return render_template('auth/register.html', form=reg_form)
 
 @auth.route('/u/<username>/lastfm_setup', methods=['GET', 'POST'])
@@ -67,7 +68,7 @@ def lastfm_setup(username):
     fm_form = LastfmAuthForm()
 
     client = pylast.LastFMNetwork(capp.config['LASTFM_API_KEY'],
-                                  capp.config['LASTFM_API_SECRET'])
+                                      capp.config['LASTFM_API_SECRET'])
     sk = pylast.SessionKeyGenerator(client)
     url = sk.get_web_auth_url()
 
