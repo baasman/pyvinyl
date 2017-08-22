@@ -30,19 +30,25 @@ class AddTagForm(FlaskForm):
 class AddRecordForm(FlaskForm):
     did_help = 'The number you will find at the end of an albums release page url'
     dmid_help = 'The number you will find at the end of an albums master page url'
+    cl_help = 'Example: https://www.discogs.com/user/<yourusername>/collection'
 
+
+    collection_link = StringField(_add_hover_to_label(cl_help, 'Link to collection (?)'),
+                                  validators=[Optional()])
     discogs_id = DecimalField(_add_hover_to_label(did_help, 'Discogs release ID (?)'),
                               validators=[Optional()])
-    discogs_master_id = DecimalField(_add_hover_to_label(dmid_help, 'Discogs master ID (?)'),
-                                                         validators=[Optional()])
+    # discogs_master_id = DecimalField(_add_hover_to_label(dmid_help, 'Discogs master ID (?)'),
+    #                                                      validators=[Optional()])
     submit = SubmitField('Submit')
 
     # TODO: check whether album is in users collection, use custom validator
+    def validate_discogs_id(self, Field):
+        return True
 
     def validate(self):
-        if not self.discogs_id.data and not self.discogs_master_id.data:
+        if not self.discogs_id.data and not self.collection_link.data:
             return False
-        if self.discogs_id.data and self.discogs_master_id.data:
+        if self.discogs_id.data and self.collection_link.data:
             return False
         return True
 

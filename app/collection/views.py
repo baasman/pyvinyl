@@ -15,7 +15,9 @@ from app.utils.images import upload_image
 from app.utils.scrobbler import scrobble_album, update_stats
 from app import mongo
 from app.utils.api_cons import create_discogs_client, create_lastfm_client
+from app.utils.scrape_collection import get_all_ids
 from . import collection
+from .utils import add_album
 from .forms import AddRecordForm, ScrobbleForm, AddTagForm, DiscogsValidationForm, DeleteForm
 from .tables import CollectionTable
 
@@ -96,59 +98,13 @@ def add_record():
     if request.method == 'POST' and form.validate_on_submit():
         if form.discogs_id.data:
             discogs_id = int(form.discogs_id.data)
-        else:
-            discogs_id = int(form.discogs_master_id.data)
-        if mongo.db.users.find_one({'user': username,
-                                    'records': {'$in': [discogs_id]}}) is not None:
-            flash('Album already in collection')
-            return redirect(url_for('collection.collection_page', username=username, user=user))
-        else:
-            n = mongo.db.users.update({'user': username}, {'$addToSet': {'records':
-                                                                             {'id': discogs_id,
-                                                                              'count': 0,
-                                                                              'date_added': datetime.datetime.now()}}})
-            record = mongo.db.records.find_one({'_id': discogs_id})
-            if record is None:
-                album = dclient.release(discogs_id)
-                try:
-                    tracklist = album.tracklist
-                    artists = album.artists
-                    genres = album.genres
-                    styles = album.styles
-                    image = album.images[0]
-                except discogs_client.exceptions.HTTPError:
-                    flash('Could not find release on discogs. Double check the release id')
-                    return redirect(url_for('add_record', username=username))
-                try:
-                    try:
-                        image_bytes = requests.get(image['resource_url']).content
-                        image_binary = Binary(image_bytes)
-                    except:
-                        image_binary = 'default_image'
-                    artist_id = artists[0].id
-
-                    if not styles:
-                        styles = ''
-                    else:
-                        styles = [i for i in styles]
-
-                    n = mongo.db.records.insert_one({'_id': discogs_id,
-                                                     'year': int(album.year),
-                                                     'title': album.title,
-                                                     'artists': [i.name for i in artists],
-                                                     'tracks': [i.title for i in tracklist],
-                                                     'genres': [i for i in genres],
-                                                     'styles': styles,
-                                                     'image': image,
-                                                     'image_binary': image_binary,
-                                                     'track_data': [i.data for i in tracklist],
-                                                     'total_plays': 0,
-                                                     'plays': [],
-                                                     'artist_id': artist_id})
-                except:
-                    print(sys.exc_info()[:2])
-            return redirect(url_for('collection.collection_page', username=username,
-                                    user=mongo.db.users.find_one({'user': username})))
+            add_album(discogs_id, form, dclient, username, user)
+        elif form.collection_link.data:
+            all_ids = get_all_ids(form.collection_link.data)
+            for discogs_id in all_ids[:4]:
+                add_album(discogs_id, form, dclient, username, user, from_sequence=True)
+        return redirect(url_for('collection.collection_page', username=username,
+                                user=user))
     return render_template('collection/add_record.html', form=form)
 
 

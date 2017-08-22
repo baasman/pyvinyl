@@ -20,9 +20,9 @@
                 <form class="form-horizontal" method="post" role="form" id="add_record_form">
                     {{ form.hidden_tag() }}
                     {{ wtf.form_errors(form, hiddens="only") }}
-                    {{ wtf.form_field(form.discogs_id) }}
+                    {{ wtf.form_field(form.collection_link) }}
                     </strong><p id="form_or"><b>or</b></p>
-                    {{ wtf.form_field(form.discogs_master_id) }}
+                    {{ wtf.form_field(form.discogs_id) }}
                     {{ wtf.form_field(form.submit, class='btn btn-success') }}
                 </form>
             </div>

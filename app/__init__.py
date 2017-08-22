@@ -34,6 +34,7 @@ def create_app(config):
     app.config.from_object(app_config[config])
     app.config.from_pyfile('config.py')
 
+    # TODO: this shouldnt be necessary
     if app.testing:
         mongo.init_app(app, config_prefix='MONGO2')
     else:
