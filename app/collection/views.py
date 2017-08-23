@@ -53,6 +53,7 @@ def explore_collection(username):
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
+    df.sort_values('TimesPlayed', ascending=False, inplace=True)
     genres = get_most_common_genres(df)
 
     all_tags = list(mongo.db.users.aggregate([
@@ -74,7 +75,7 @@ def explore_collection(username):
         n_plays_by_user = top_albums.loc[top_albums.Title == record['title'], 'TimesPlayed'].values[0]
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
-    return render_template('collection/explore_collection.html', filename=fname,
+    return render_template('explore/explore_collection.html', filename=fname,
                            images_to_display=images_to_display, user=user,
                            most_common_genres=genres[:6],
                            most_common_tags=all_tags[:6])
@@ -96,7 +97,7 @@ def add_record():
             add_album(discogs_id, form, dclient, username, user)
         elif form.collection_link.data:
             all_ids = get_all_ids(form.collection_link.data)
-            for discogs_id in all_ids[:4]:
+            for discogs_id in all_ids:
                 add_album(discogs_id, form, dclient, username, user, from_sequence=True)
         return redirect(url_for('collection.collection_page', username=username,
                                 user=user))

@@ -54,7 +54,7 @@
                 <li><a href="{{ url_for('home.about') }}">About</a></li>
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('collection.collection_page', username=current_user.username) }}">Collection</a></li>
-                    <li><a href="{{ url_for('collection.explore_collection', username=current_user.username) }}">Explore</a></li>
+                    <li><a href="{{ url_for('explore.explore_collection', username=current_user.username) }}">Explore</a></li>
                     <li><a href="{{ url_for('collection.add_record', username=current_user.username) }}">Add Record</a></li>
                     <li><a href="{{ url_for('auth.logout', username=current_user.username) }}">Logout</a></li>
                 {% else %}

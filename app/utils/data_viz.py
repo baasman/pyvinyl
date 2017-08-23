@@ -12,8 +12,9 @@ def get_items(user, for_table=True, add_breakpoints=False):
     if len(record_dict) > 0:
         records = mongo.db.records.find({'_id': {'$in': list(record_dict.keys())}})
         for record in records:
+            if record_dict[record['_id']][0] > 0:
+                print(record['_id'])
             date = record_dict[record['_id']][1]
-
             if add_breakpoints:
                 genres = ', '.join([i + BREAKPOINT_VALUE for i in record['genres']])
                 styles = ', '.join([i + BREAKPOINT_VALUE for i in record['styles']])
