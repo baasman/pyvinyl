@@ -20,7 +20,7 @@ def scrobble_album(client, record, current_time):
                 current_time = get_time(current_time, track_length)
                 print(current_time)
             lfm_timestamp = (current_time - datetime.datetime.utcfromtimestamp(0)).total_seconds()
-            # client.scrobble(artist=artist, title=track['title'], timestamp=lfm_timestamp)
+            client.scrobble(artist=artist, title=track['title'], timestamp=lfm_timestamp)
     except:
         print(sys.exc_info()[:2])
 
