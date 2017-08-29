@@ -13,7 +13,7 @@ def get_time(current_time, duration):
 def scrobble_album(client, record, current_time):
     try:
         artist = record['artists'][0]
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.utcnow()
         for track in record['track_data']:
             if track['duration'] != '':
                 track_length = track['duration']
@@ -35,6 +35,3 @@ def update_stats(username, album_id, dt):
                                  {'$push': {'plays': {'date': dt,
                                                       'user': username}}},
                                  upsert=True)
-    print(n1)
-    print(n2)
-    print(n3)

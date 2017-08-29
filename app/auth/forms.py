@@ -24,7 +24,6 @@ class RegistrationForm(FlaskForm):
         if mongo.db.users.find_one({'user': field.data}) is not None:
             raise ValidationError('Username already in use')
 
-    # TODO: check for actual value, cant be ''
     def validate(self):
         if self.lastfm_user.data and not self.lastfm_password.data:
             raise ValidationError('Must supply password if giving lastfm user')

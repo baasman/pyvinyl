@@ -92,8 +92,6 @@ def album_page(username, album_id):
     fname = upload_image(record, username)
 
     if request.method == 'POST':
-
-        # TODO: scrobble form should not be called if tag form field is empty
         if tag_form.submit.data and tag_form.validate_on_submit():
             tags = tag_form.tag.data
             if ',' in tags:
