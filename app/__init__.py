@@ -3,6 +3,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
 from .user_management import User
+from .models import db
 
 from app.exceptions import not_found_error, server_error
 
@@ -10,11 +11,10 @@ from config import app_config
 
 login_manager = LoginManager()
 
-mongo = PyMongo()
 
 @login_manager.user_loader
 def load_user(user):
-    user = mongo.db.users.find_one({'user': user})
+    user = db.User.objects.get(user=user)
     if user:
         return User(username=user['user'])
     else:
@@ -36,9 +36,9 @@ def create_app(config):
 
     # TODO: this shouldnt be necessary
     if app.testing:
-        mongo.init_app(app, config_prefix='MONGO2')
+        db.init_app(app, config_prefix='MONGO2')
     else:
-        mongo.init_app(app, config_prefix='MONGO')
+        db.init_app(app)
 
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)

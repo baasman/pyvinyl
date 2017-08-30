@@ -18,6 +18,10 @@ class DevelopmentConfig(Config):
     DEBUG = True
     DEVELOPMENT = True
 
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    MONGO_DBNAME = 'app_test'
+
 
 class TestingConfig(Config):
     TESTING = True
