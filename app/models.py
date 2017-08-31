@@ -18,6 +18,9 @@ class BaseUser(db.Document):
         record = UserRecord(id=id)
         self.update(add_to_set__records=record)
 
+    def get_user(self, username):
+        return self.objects.get(user=username)
+
 
 class UserRecord(db.EmbeddedDocument):
     date_added = db.DateTimeField(default=datetime.datetime.now())
@@ -56,6 +59,9 @@ class BaseRecord(db.Document):
         'abstract': True
     }
 
+    def get_record(self, id):
+        return self.objects.get(_id=id)
+
 
 class RecordPlay(db.EmbeddedDocument):
     date = db.DateTimeField()
@@ -74,7 +80,7 @@ class Record(BaseRecord):
     artist_id = db.IntField()
     title = db.StringField()
     plays = db.ListField(db.EmbeddedDocumentField(RecordPlay))
-    image = db.DictField()
+    image_binary = db.BinaryField()
 
     def __str__(self):
         return '_id=%d, record=%s' % (self._id, self.title)
@@ -90,4 +96,8 @@ if __name__ == '__main__':
                   )
     boudey.save()
     boudey.add_record(id=432432)
+
+    rec = Record(_id=34242342, artists=['mccoy', 'coltrane'])
+
+
 
