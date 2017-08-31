@@ -3,7 +3,7 @@ from flask import current_app as capp
 from flask_login import current_user
 
 from . import home
-from app import mongo
+from app.models import User, Record
 
 import os
 
@@ -11,7 +11,7 @@ import os
 def homepage():
     try:
         username = current_user.username
-        user = mongo.db.users.find_one({'user': username})
+        user = User.get_user(user=username)
     except AttributeError:
         username = 'anonymous'
         user = None
@@ -24,7 +24,7 @@ def homepage():
     sort = {'$sort': {'played': -1}}
     limit = {'$limit': 6}
     pipeline = [unwind, project, sort, limit]
-    recent_records = mongo.db.records.aggregate(pipeline)
+    recent_records = Record.objects().aggregate(pipeline)
     images_to_display = []
     for record in recent_records:
         date = record['played'].strftime('%b-%d %H:%M')
@@ -36,8 +36,7 @@ def homepage():
                     print(record['_id'])
                     f.write(record['image_binary'])
                     if username != 'anonymous':
-                        n = mongo.db.users.update({'user': username},
-                                                  {'$push': {'tmp_files': fname}})
+                        n = user.update(push__tmp_files=fname)
         else:
             fname = 'use_default'
         images_to_display.append((fname, record['_id'], date))
