@@ -11,7 +11,7 @@ import os
 def homepage():
     try:
         username = current_user.username
-        user = User.get_user(user=username)
+        user = User.get_user(username)
     except AttributeError:
         username = 'anonymous'
         user = None
