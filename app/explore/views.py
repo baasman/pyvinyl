@@ -9,13 +9,13 @@ from . import explore
 
 @explore.route('/u/<string:username>/explore', methods=['GET', 'POST'])
 def explore_collection(username):
-    user = User.get_user(username)
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     genres = get_most_common_genres(df)
 
-    all_tags = list(User.objects().aggregate([
+    all_tags = list(User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -41,7 +41,7 @@ def explore_collection(username):
 
 @explore.route('/u/<string:username>/explore/top_genres')
 def top_genres(username):
-    user = User.get_user(username)
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
@@ -50,8 +50,8 @@ def top_genres(username):
 
 @explore.route('/u/<string:username>/explore/top_tags')
 def top_tags(username):
-    user = User.get_user(username)
-    all_tags = list(User.objects().aggregate([
+    user = User.objects.get(user=username)
+    all_tags = list(User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -74,7 +74,7 @@ def top_in_genre(username, genre):
 
 @explore.route('/u/<string:username>/explore/tags/<string:tag>')
 def top_in_tag(username, tag):
-    records = User.objects().aggregate([
+    records = User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -93,7 +93,7 @@ def top_in_tag(username, tag):
 
 @explore.route('/u/<string:username>/explore/top_albums')
 def top_albums(username):
-    user = User.get_user(username)
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])

@@ -30,7 +30,8 @@ def collection_page(username, page=0):
         ALBUMS_PER_PAGE = int(ALBUMS_PER_PAGE)
 
     dclient = create_discogs_client(capp.config)
-    user = User.get_user(username)
+    # user = User.get_user(username=username)
+    user = User.objects.get(user=username)
     df = get_items(user, for_table=False)
     df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
@@ -56,7 +57,7 @@ def add_record():
     args = dict(request.args)
     username = args['username'][0]
 
-    user = User.get_user(username)
+    user = User.objects.get(user=username)
     form = AddRecordForm()
     if request.method == 'POST' and form.validate_on_submit():
         if form.discogs_id.data:
@@ -73,8 +74,8 @@ def add_record():
 
 @collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST', 'DELETE'])
 def album_page(username, album_id):
-    user = User.get_user(username)
-    record = Record.get_record(album_id)
+    user = User.objects.get(user=username)
+    record = Record.objects.get(_id=album_id)
     scrobble_form = ScrobbleForm()
     tag_form = AddTagForm()
     delete_form = DeleteForm()

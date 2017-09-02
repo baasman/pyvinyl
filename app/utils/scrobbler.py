@@ -1,4 +1,4 @@
-from app import mongo
+from app.models import User, Record, RecordPlay
 
 import sys
 import datetime
@@ -26,12 +26,8 @@ def scrobble_album(client, record, current_time):
 
 
 def update_stats(username, album_id, dt):
-    n1 = mongo.db.users.update({'user': username,
-                                'records.id': album_id},
-                               {'$inc': {'records.$.count': 1}})
-    n2 = mongo.db.records.update({'_id': album_id},
-                                 {'$inc': {'total_plays': 1}})
-    n3 = mongo.db.records.update({'_id': album_id},
-                                 {'$push': {'plays': {'date': dt,
-                                                      'user': username}}},
-                                 upsert=True)
+    n1 = User.objects(user=username, records__id=album_id).update(inc__records__S__count=1)
+    n2 = Record.objects(_id=album_id).update(inc__total_plays=1)
+
+    play = RecordPlay(user=username, date=dt)
+    n3 = Record.objects(_id=album_id).update(push__plays=play)

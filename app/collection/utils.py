@@ -9,7 +9,7 @@ import requests
 from bson import Binary
 
 def add_album(discogs_id, form, dclient, username, user, from_sequence=False):
-    if User.objects.get(user=username, records__id=discogs_id) is not None:
+    if User.objects(user=username, records__id=discogs_id).first() is not None:
         flash('Album already in collection')
         if not from_sequence:
             return redirect(url_for('collection.collection_page', username=username, user=user))
@@ -17,7 +17,7 @@ def add_album(discogs_id, form, dclient, username, user, from_sequence=False):
         user_record = UserRecord(id=discogs_id)
         n = User.objects.get(user=username).update(add_to_set__records=user_record)
 
-        record = Record.objects.get(_id=discogs_id)
+        record = Record.objects(_id=discogs_id).first()
 
         if record is None:
             album = dclient.release(discogs_id)

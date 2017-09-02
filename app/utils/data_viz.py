@@ -1,6 +1,6 @@
 from collections import Counter
 
-from app import mongo
+from app.models import Record
 from app.collection.tables import CollectionItem
 from config import BREAKPOINT_VALUE
 
@@ -10,7 +10,7 @@ def get_items(user, for_table=True, add_breakpoints=False):
     record_dict = {i['id']: [i['count'], i['date_added']] for i in all_records}
     col_list = []
     if len(record_dict) > 0:
-        records = mongo.db.records.find({'_id': {'$in': list(record_dict.keys())}})
+        records = Record.objects(_id__in=list(record_dict.keys()))
         for record in records:
             if record_dict[record['_id']][0] > 0:
                 print(record['_id'])
@@ -45,7 +45,7 @@ def convert_df_to_items_and_sort(df, user, sort_on=None, ascending=False):
 
     col_list = []
     for idx, row in df.iterrows():
-        album_id = mongo.db.records.find_one({'title': row['Title']}, {'_id': 1})
+        album_id = Record.objects.get(title=row['Title'])
         col_list.append(CollectionItem(row['Title'], row['Artist'], row['Year'], row['Genre'], row['Style'],
                          row['TimesPlayed'], row['DateAdded'], album_id['_id'], user['user']))
     return col_list

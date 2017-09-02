@@ -18,8 +18,6 @@ class BaseUser(db.Document):
         record = UserRecord(id=id)
         self.update(add_to_set__records=record)
 
-    def get_user(self, username):
-        return self.objects.get(user=username)
 
 
 class UserRecord(db.EmbeddedDocument):
@@ -34,8 +32,10 @@ class UserTag(db.EmbeddedDocument):
 
 
 class User(BaseUser):
+
     email = db.StringField(unique=True)
     user = db.StringField(required=True, unique=True, max_length=40)
+    password_hash = db.StringField()
     lastfm_username = db.StringField()
     lastfm_password = db.StringField()
     records = db.ListField(db.EmbeddedDocumentField(UserRecord))
@@ -43,6 +43,11 @@ class User(BaseUser):
     tmp_files = db.ListField(db.StringField())
     lfm_is_authenticated = db.BooleanField(default=False)
     lastfm_token_url = db.StringField()
+    lfm_session_key = db.StringField()
+
+    def get_user(self, username):
+        print(username)
+        return self.objects.get(user=username)
 
     def __str__(self):
         return 'user=%s' % self.user
@@ -58,9 +63,6 @@ class BaseRecord(db.Document):
     meta = {
         'abstract': True
     }
-
-    def get_record(self, id):
-        return self.objects.get(_id=id)
 
 
 class RecordPlay(db.EmbeddedDocument):
@@ -88,16 +90,20 @@ class Record(BaseRecord):
 
 if __name__ == '__main__':
 
+    import mongoengine
+    mongoengine.connect('test2')
     record = UserRecord(id=432343)
     tag = UserTag(id=432343, tag='sensual')
-    boudey = User(email='boudeyz@gmail.com',
-                  user='boudey',
+    boudey = User(email='boudeyz3@gmail.com',
+                  user='boudey3',
                   lastfm_username='boudey'
                   )
     boudey.save()
     boudey.add_record(id=432432)
 
+    u = User.get_user('boudey3')
+
     rec = Record(_id=34242342, artists=['mccoy', 'coltrane'])
-
-
+    rec.save()
+    Record.get_record(id=34242342)
 

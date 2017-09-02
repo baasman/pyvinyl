@@ -6,7 +6,7 @@ from flask import current_app as capp
 from flask_login import login_user, logout_user, login_required
 
 from app.models import User
-from app.user_management import User
+from app.user_management import FlaskUser
 from . import auth
 from .forms import LoginForm, RegistrationForm, LastfmAuthForm
 
@@ -20,7 +20,7 @@ def login():
     if request.method == 'POST': # and form.validate_on_submit():
         user = User.objects.get(user=form.user.data)
         if user and User.validate_login(user['password_hash'], form.password.data):
-            user_obj = User(user['user'])
+            user_obj = FlaskUser(user['user'])
             login_user(user_obj)
             flash('Logged in successfully. Happy scrobbling', category='success')
             return redirect(url_for('collection.collection_page', username=user['user']))
@@ -33,10 +33,10 @@ def login():
 def register():
     reg_form = RegistrationForm()
     if request.method == 'POST' and reg_form.validate_on_submit():
-        user_obj = User(email=reg_form.email.data,
-                        username=reg_form.username.data,
-                        lastfm_user=reg_form.lastfm_user.data,
-                        lastfm_password=reg_form.lastfm_password.data)
+        user_obj = FlaskUser(email=reg_form.email.data,
+                             username=reg_form.username.data,
+                             lastfm_user=reg_form.lastfm_user.data,
+                             lastfm_password=reg_form.lastfm_password.data)
         user_obj.set_password(reg_form.password.data)
         try:
             new_user = User(user=user_obj.username,
@@ -45,7 +45,8 @@ def register():
                             lastfm_username=user_obj.lastfm_user,
                             lastfm_password=user_obj.lastfm_password,
                             )
-            new_user.save()
+            n = new_user.save()
+            print(n)
             login_user(user_obj)
             if user_obj.lastfm_password and user_obj.lastfm_user:
                 return redirect(url_for('auth.lastfm_setup', username=user_obj.username))
@@ -54,7 +55,6 @@ def register():
             return redirect(url_for('collection.collection_page', username=user_obj.username))
         except:
             print(sys.exc_info()[:2])
-            return redirect(url_for('errors.server_error'))
     return render_template('auth/register.html', form=reg_form)
 
 @auth.route('/u/<username>/lastfm_setup', methods=['GET', 'POST'])

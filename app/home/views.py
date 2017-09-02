@@ -11,7 +11,7 @@ import os
 def homepage():
     try:
         username = current_user.username
-        user = User.get_user(username)
+        user = User.objects.get(user=username)
     except AttributeError:
         username = 'anonymous'
         user = None
@@ -24,7 +24,7 @@ def homepage():
     sort = {'$sort': {'played': -1}}
     limit = {'$limit': 6}
     pipeline = [unwind, project, sort, limit]
-    recent_records = Record.objects().aggregate(pipeline)
+    recent_records = Record.objects().aggregate(*pipeline)
     images_to_display = []
     for record in recent_records:
         date = record['played'].strftime('%b-%d %H:%M')

@@ -7,10 +7,6 @@ class Config():
     MONGO_PORT = 51163
     MONGO_DBNAME = 'app'
 
-    MONGO2_HOST = 'localhost'
-    MONGO2_PORT = 27017
-    MONGO2_DBNAME = 'test'
-
     DISCOGS_USER_AGENT = 'discogs_pyvy/1.0'
 
 
@@ -20,7 +16,7 @@ class DevelopmentConfig(Config):
 
     MONGO_HOST = 'localhost'
     MONGO_PORT = 27017
-    MONGO_DBNAME = 'app_test'
+    MONGO_DBNAME = 'test'
 
 
 class TestingConfig(Config):
@@ -28,6 +24,10 @@ class TestingConfig(Config):
     DEBUG = False
     CSRF_ENABLED = False
     PRESERVE_CONTEXT_ON_EXCEPTION = False
+
+    MONGO_HOST = 'localhost'
+    MONGO_PORT = 27017
+    MONGO_DBNAME = 'test'
 
 
 class ProductionConfig(Config):
