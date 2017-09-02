@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 from app.utils.data_viz import get_items, get_most_common_genres, convert_df_to_items_and_sort
 from app.utils.images import upload_image
 from app.utils.scrobbler import scrobble_album, update_stats
-from app import mongo
+from app.models import User, Record, UserTag
 from app.utils.api_cons import create_discogs_client, create_lastfm_client
 from app.utils.scrape_collection import get_all_ids
 from . import collection
@@ -30,7 +30,8 @@ def collection_page(username, page=0):
         ALBUMS_PER_PAGE = int(ALBUMS_PER_PAGE)
 
     dclient = create_discogs_client(capp.config)
-    user = mongo.db.users.find_one({'user': username})
+    # user = User.get_user(username=username)
+    user = User.objects.get(user=username)
     df = get_items(user, for_table=False)
     df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
@@ -56,7 +57,7 @@ def add_record():
     args = dict(request.args)
     username = args['username'][0]
 
-    user = mongo.db.users.find_one({'user': username})
+    user = User.objects.get(user=username)
     form = AddRecordForm()
     if request.method == 'POST' and form.validate_on_submit():
         if form.discogs_id.data:
@@ -73,13 +74,16 @@ def add_record():
 
 @collection.route('/u/<string:username>/album/<int:album_id>', methods=['GET', 'POST', 'DELETE'])
 def album_page(username, album_id):
-    user = mongo.db.users.find_one({'user': username})
-    record = mongo.db.records.find_one({'_id': album_id})
+    user = User.objects.get(user=username)
+    record = Record.objects.get(_id=album_id)
     scrobble_form = ScrobbleForm()
     tag_form = AddTagForm()
     delete_form = DeleteForm()
 
-    total_user_plays = mongo.db.users.find_one(
+    # TODO: implement this with mongoengine
+    # total_user_plays = User.objects.get(user=username, record__id=album_id).only()
+
+    total_user_plays = User._get_collection().find_one(
         {'user': username, 'records.id': album_id},
         {'_id': 0, 'records.$': 1}
     )
@@ -98,25 +102,24 @@ def album_page(username, album_id):
                 tags = tags.replace(' ', '')
                 tags = tags.split(',')
                 for tag in tags:
-                    exists = list(mongo.db.users.aggregate([
+                    exists = list(User.objects().aggregate([
                         {'$unwind': '$tags'},
                         {'$match': {'tags.tag': tags, 'tags.id': album_id}}
                     ]))
                     if not exists:
-                        n1 = mongo.db.users.update({'user': username},
-                                                   {'$push': {'tags': {'tag': tag,
-                                                                       'id': album_id}}})
+                        tag = UserTag(_id=album_id, tag=tag)
+                        n1 = user.update(push__tags=tag)
+
                     else:
                         flash('tag already exists for this album', category='Warning')
             else:
-                exists = list(mongo.db.users.aggregate([
+                exists = list(User.objects().aggregate([
                     {'$unwind': '$tags'},
                     {'$match': {'tags.tag': tags, 'tags.id': album_id}}
                 ]))
                 if not exists:
-                    n1 = mongo.db.users.update({'user': username},
-                                               {'$push': {'tags': {'tag': tags,
-                                                               'id': album_id}}})
+                    tag = UserTag(_id=album_id, tag=tags)
+                    n1 = user.update(push__tags=tag)
                 else:
                     flash('tag already exists for this album', category='Warning')
 
@@ -145,11 +148,10 @@ def album_page(username, album_id):
         elif request.method == 'POST' and delete_form.delete.data and delete_form.validate_on_submit():
 
             try:
-                mongo.db.records.delete_one({'_id': album_id})
-                mongo.db.users.update({'user': username},
-                                      {'$pull': {'records': {'id': album_id}}})
-                mongo.db.users.update({'user': username},
-                                      {'$pull': {'tags': {'id': album_id}}})
+                query = {'id': album_id}
+                Record.objects.get(_id=album_id).delete()
+                user.update(pull__records=query)
+                user.update(pull__tags=query)
             except:
                 pass
             return redirect(url_for('collection.collection_page', username=username))
@@ -158,23 +160,25 @@ def album_page(username, album_id):
                            scrobble_form=scrobble_form, total_user_plays=total_user_plays,
                            tag_form=tag_form, delete_form=delete_form)
 
-@collection.route('/discogs_setup/<username>', methods=['GET', 'POST'])
-def discogs_setup(username):
-    dclient = create_discogs_client(capp.config)
-    args = dict(request.args)
-    token, secret, url = args['tokens']
-    n = mongo.db.users.update({'user': username},
-                              {'$set': {'discogs_info':
-                                            {'token': token,
-                                            'secret': secret}}})
-    form = DiscogsValidationForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        oath_code = form.code.data
-        access_token, access_secret = dclient.get_access_token(oath_code)
-        n = mongo.db.users.update({'user': username},
-                                  {'$set': {'discogs_info.oauth_code': oath_code,
-                                            'discogs_info.access_token': access_token,
-                                            'discogs_info.access_secret': access_secret}})
-        return redirect(url_for('collection.collection_page', username=username))
-    return render_template('collection/discogs_signup.html', url=url, form=form)
+
+# TODO: determine whether I need this
+# @collection.route('/discogs_setup/<username>', methods=['GET', 'POST'])
+# def discogs_setup(username):
+#     dclient = create_discogs_client(capp.config)
+#     args = dict(request.args)
+#     token, secret, url = args['tokens']
+#     n = mongo.db.users.update({'user': username},
+#                               {'$set': {'discogs_info':
+#                                             {'token': token,
+#                                             'secret': secret}}})
+#     form = DiscogsValidationForm()
+#     if request.method == 'POST' and form.validate_on_submit():
+#         oath_code = form.code.data
+#         access_token, access_secret = dclient.get_access_token(oath_code)
+#         n = mongo.db.users.update({'user': username},
+#                                   {'$set': {'discogs_info.oauth_code': oath_code,
+#                                             'discogs_info.access_token': access_token,
+#                                             'discogs_info.access_secret': access_secret}})
+#         return redirect(url_for('collection.collection_page', username=username))
+#     return render_template('collection/discogs_signup.html', url=url, form=form)
 

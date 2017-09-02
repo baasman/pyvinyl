@@ -1,7 +1,5 @@
 from flask import current_app as capp
 
-from app import mongo
-
 import os
 
 

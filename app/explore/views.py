@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import render_template
 
-from app import mongo
+from app.models import User, Record
 from app.utils.data_viz import get_items, get_most_common_genres
 from app.utils.images import upload_image
 from . import explore
@@ -9,13 +9,13 @@ from . import explore
 
 @explore.route('/u/<string:username>/explore', methods=['GET', 'POST'])
 def explore_collection(username):
-    user = mongo.db.users.find_one({'user': username})
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     genres = get_most_common_genres(df)
 
-    all_tags = list(mongo.db.users.aggregate([
+    all_tags = list(User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -26,7 +26,7 @@ def explore_collection(username):
     top_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']].head(6)
     records = []
     for title in top_albums.Title.values:
-        records.append(mongo.db.records.find_one({'title': title}))
+        records.append(Record.objects.get(title=title))
 
     images_to_display = []
     for record in records:
@@ -41,7 +41,7 @@ def explore_collection(username):
 
 @explore.route('/u/<string:username>/explore/top_genres')
 def top_genres(username):
-    user = mongo.db.users.find_one({'user': username})
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False, add_breakpoints=True)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
@@ -50,8 +50,8 @@ def top_genres(username):
 
 @explore.route('/u/<string:username>/explore/top_tags')
 def top_tags(username):
-    user = mongo.db.users.find_one({'user': username})
-    all_tags = list(mongo.db.users.aggregate([
+    user = User.objects.get(user=username)
+    all_tags = list(User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -64,8 +64,7 @@ def top_tags(username):
 
 @explore.route('/u/<string:username>/explore/<string:genre>')
 def top_in_genre(username, genre):
-    records = mongo.db.records.find({'plays.user': username,
-                                     'genres': genre})
+    records = Record.objects(plays__user=username, genres=genre)
     images_to_display = []
     for record in records:
         fname = upload_image(record, username)
@@ -75,7 +74,7 @@ def top_in_genre(username, genre):
 
 @explore.route('/u/<string:username>/explore/tags/<string:tag>')
 def top_in_tag(username, tag):
-    records = mongo.db.users.aggregate([
+    records = User.objects().aggregate(*[
         {'$match': {'user': username}},
         {'$unwind': '$tags'},
         {'$project': {'tags': 1}},
@@ -85,7 +84,7 @@ def top_in_tag(username, tag):
 
     images_to_display = []
     for record in records:
-        record = mongo.db.records.find_one({'_id': record['_id']}, {'_id': 1, 'image_binary': 1})
+        record = Record._get_collection().find_one({'_id': record['_id']}, {'_id': 1, 'image_binary': 1})
         fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('explore/albums_in_tag.html', images_to_display=images_to_display,
@@ -94,14 +93,14 @@ def top_in_tag(username, tag):
 
 @explore.route('/u/<string:username>/explore/top_albums')
 def top_albums(username):
-    user = mongo.db.users.find_one({'user': username})
+    user = User.objects.get(user=username)
     df_list = get_items(user, for_table=False)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     top_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']]
     records = []
     for title in top_albums.Title.values:
-        records.append(mongo.db.records.find_one({'title': title}))
+        records.append(Record.objects.get(title=title))
 
     images_to_display = []
     for record in records:

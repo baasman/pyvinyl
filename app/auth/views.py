@@ -5,8 +5,8 @@ from flask import request, redirect, render_template, flash, url_for, abort
 from flask import current_app as capp
 from flask_login import login_user, logout_user, login_required
 
-from app import login_manager, mongo
-from app.user_management import User
+from app.models import User
+from app.user_management import FlaskUser
 from . import auth
 from .forms import LoginForm, RegistrationForm, LastfmAuthForm
 
@@ -18,9 +18,9 @@ def login():
     form = LoginForm()
 
     if request.method == 'POST': # and form.validate_on_submit():
-        user = mongo.db.users.find_one({'user': form.user.data})
+        user = User.objects.get(user=form.user.data)
         if user and User.validate_login(user['password_hash'], form.password.data):
-            user_obj = User(user['user'])
+            user_obj = FlaskUser(user['user'])
             login_user(user_obj)
             flash('Logged in successfully. Happy scrobbling', category='success')
             return redirect(url_for('collection.collection_page', username=user['user']))
@@ -33,22 +33,20 @@ def login():
 def register():
     reg_form = RegistrationForm()
     if request.method == 'POST' and reg_form.validate_on_submit():
-        user_obj = User(email=reg_form.email.data,
-                        username=reg_form.username.data,
-                        lastfm_user=reg_form.lastfm_user.data,
-                        lastfm_password=reg_form.lastfm_password.data)
+        user_obj = FlaskUser(email=reg_form.email.data,
+                             username=reg_form.username.data,
+                             lastfm_user=reg_form.lastfm_user.data,
+                             lastfm_password=reg_form.lastfm_password.data)
         user_obj.set_password(reg_form.password.data)
         try:
-            n = mongo.db.users.insert_one({'user': user_obj.username,
-                                           'email': user_obj.email,
-                                           'password_hash': user_obj.password_hash,
-                                           'lastfm_username': user_obj.lastfm_user,
-                                           'lastfm_password': user_obj.lastfm_password,
-                                           'records': [],
-                                           'tmp_files': [],
-                                           'discogs_info': {'oath_token': None,
-                                                            'token': None,
-                                                            'secret': None}})
+            new_user = User(user=user_obj.username,
+                            email=user_obj.email,
+                            password_hash=user_obj.password_hash,
+                            lastfm_username=user_obj.lastfm_user,
+                            lastfm_password=user_obj.lastfm_password,
+                            )
+            n = new_user.save()
+            print(n)
             login_user(user_obj)
             if user_obj.lastfm_password and user_obj.lastfm_user:
                 return redirect(url_for('auth.lastfm_setup', username=user_obj.username))
@@ -57,13 +55,12 @@ def register():
             return redirect(url_for('collection.collection_page', username=user_obj.username))
         except:
             print(sys.exc_info()[:2])
-            return redirect(url_for('errors.server_error'))
     return render_template('auth/register.html', form=reg_form)
 
 @auth.route('/u/<username>/lastfm_setup', methods=['GET', 'POST'])
 @login_required
 def lastfm_setup(username):
-    user = mongo.db.users.find_one({'user': username})
+    user = User.objects.get(user=username)
 
     fm_form = LastfmAuthForm()
 
@@ -72,21 +69,16 @@ def lastfm_setup(username):
     sk = pylast.SessionKeyGenerator(client)
     url = sk.get_web_auth_url()
 
-    mongo.db.users.update({'user': username},
-                          {'$set': {'lastfm_token_url': url}},
-                          upsert=True)
+    user.update(set__lastfm_token_url=url, upsert=True)
 
     if request.method == 'POST' and fm_form.confirm.data:
 
         skey = sk.get_session_key(user['lastfm_username'],
                                   user['lastfm_password'])
 
-        mongo.db.users.update({'user': username},
-                              {'$set': {'lfm_is_authenticated': True}},
-                              upsert=True)
-        mongo.db.users.update({'user': username},
-                              {'$set': {'lfm_session_key': skey}},
-                              upsert=True)
+        user.update(set__lfm_is_authenticated=True, upsert=True)
+        user.update(set__lfm_session_key=skey, upsert=True)
+
         return redirect(url_for('collection.collection_page', username=username))
     return render_template('auth/lastfm_setup.html', fm_form=fm_form, url=url)
 
@@ -100,7 +92,10 @@ def logout():
             os.remove(os.path.join(capp.static_folder, 'tmp', file))
         except:
             print(sys.exc_info()[:2])
-    n = mongo.db.users.update({'user': username},
-                              {'$set': {'tmp_files': []}})
+
+    # TODO: figure out how to use pull_all
+    n = User.objects.get(user=username).update(
+        set__tmp_files=[]
+    )
     logout_user()
     return redirect(url_for('home.homepage'))
