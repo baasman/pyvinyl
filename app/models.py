@@ -1,4 +1,6 @@
 from flask_mongoengine import MongoEngine
+from werkzeug.security import generate_password_hash, check_password_hash
+import pylast
 import datetime
 
 db = MongoEngine()
@@ -45,9 +47,29 @@ class User(BaseUser):
     lastfm_token_url = db.StringField()
     lfm_session_key = db.StringField()
 
-    def get_user(self, username):
-        print(username)
-        return self.objects.get(user=username)
+    @property
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.user
+
+    def generate_lfm_hash(self, password):
+        return pylast.md5(password)
+
+    @staticmethod
+    def validate_login(password_hash, password):
+        return check_password_hash(password_hash, password)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
 
     def __str__(self):
         return 'user=%s' % self.user
@@ -55,6 +77,7 @@ class User(BaseUser):
     meta = {
         'allow_inheritance': True
     }
+
 
 # Record
 

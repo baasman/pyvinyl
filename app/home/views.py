@@ -9,12 +9,13 @@ import os
 
 @home.route('/')
 def homepage():
-    try:
-        username = current_user.username
-        user = User.objects.get(user=username)
-    except AttributeError:
-        username = 'anonymous'
-        user = None
+    # try:
+    #     username = current_user.user
+    #     user = User.objects.get(user=username)
+    # except AttributeError:
+    #     username = 'anonymous'
+    #     user = None
+    push = True if current_user.is_authenticated else False
 
     unwind = {'$unwind': '$plays'}
     project = {'$project': {'played': '$plays.date',
@@ -33,16 +34,13 @@ def homepage():
             upload_filename = os.path.join(capp.static_folder, 'tmp', fname)
             if not os.path.exists(upload_filename):
                 with open(upload_filename, 'wb') as f:
-                    print(record['_id'])
                     f.write(record['image_binary'])
-                    if username != 'anonymous':
-                        n = user.update(push__tmp_files=fname)
+                    if push:
+                        n = current_user.update(push__tmp_files=fname)
         else:
             fname = 'use_default'
         images_to_display.append((fname, record['_id'], date))
-
-    return render_template('home/home.html', images_to_display=images_to_display, user=user,
-                           username=username)
+    return render_template('home/home.html', images_to_display=images_to_display)
 
 @home.route('/about')
 def about():

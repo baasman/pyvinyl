@@ -1,6 +1,5 @@
 import os
 from app import create_app
-from app.user_management import FlaskUser
 from app import login_manager
 from app.models import User
 from mongoengine.errors import DoesNotExist
@@ -13,7 +12,7 @@ app = create_app(os.environ.get('FLASK_CONFIG'))
 def load_user(user):
     try:
         user = User.objects.get(user=user)
-        return FlaskUser(username=user['user'])
+        return user
     except DoesNotExist:
         return None
 

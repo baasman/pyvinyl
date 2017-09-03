@@ -65,7 +65,7 @@
             </br>
                 {% for genre in most_common_genres %}
                     <div class="imgGenreContainer" id="top_genres">
-                        <a href="{{ url_for('explore.top_in_genre', username=username, genre=genre[0])}}">
+                        <a href="{{ url_for('explore.top_in_genre', username=current_user.user, genre=genre[0])}}">
                             <div class="box">
                                 <p id="boxtext">{{ genre[0] }}: {{ genre[1] }} </p>
                             </div>

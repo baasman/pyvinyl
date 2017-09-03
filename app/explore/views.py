@@ -1,5 +1,6 @@
 import pandas as pd
 from flask import render_template
+from flask_login import current_user
 
 from app.models import User, Record
 from app.utils.data_viz import get_items, get_most_common_genres
@@ -35,7 +36,7 @@ def explore_collection(username):
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
     return render_template('explore/explore_collection.html', filename=fname,
-                           images_to_display=images_to_display, user=user,
+                           images_to_display=images_to_display,
                            most_common_genres=genres[:6],
                            most_common_tags=all_tags[:6])
 
@@ -46,7 +47,7 @@ def top_genres(username):
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     genres = get_most_common_genres(df)
-    return render_template('explore/top_genres.html', username=username, most_common_genres=genres)
+    return render_template('explore/top_genres.html', most_common_genres=genres)
 
 @explore.route('/u/<string:username>/explore/top_tags')
 def top_tags(username):
@@ -58,7 +59,7 @@ def top_tags(username):
         {'$group': {'_id': '$tags.tag', 'count': {'$sum': 1}}},
         {'$sort': {'count': -1}}
     ]))
-    return render_template('explore/top_tags.html', user=user,
+    return render_template('explore/top_tags.html',
                            most_common_tags=all_tags)
 
 
@@ -70,7 +71,7 @@ def top_in_genre(username, genre):
         fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('explore/albums_in_genre.html', images_to_display=images_to_display,
-                           username=username, genre=genre)
+                           genre=genre)
 
 @explore.route('/u/<string:username>/explore/tags/<string:tag>')
 def top_in_tag(username, tag):
@@ -88,13 +89,12 @@ def top_in_tag(username, tag):
         fname = upload_image(record, username)
         images_to_display.append((fname, record['_id']))
     return render_template('explore/albums_in_tag.html', images_to_display=images_to_display,
-                           username=username, tag=tag)
+                           tag=tag)
 
 
 @explore.route('/u/<string:username>/explore/top_albums')
 def top_albums(username):
-    user = User.objects.get(user=username)
-    df_list = get_items(user, for_table=False)
+    df_list = get_items(current_user, for_table=False)
     df = pd.DataFrame(df_list, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
     top_albums = df.sort_values('TimesPlayed', ascending=False)[['Title', 'TimesPlayed']]
@@ -108,5 +108,4 @@ def top_albums(username):
         n_plays_by_user = top_albums.loc[top_albums.Title == record['title'], 'TimesPlayed'].values[0]
         images_to_display.append((fname, record['_id'], n_plays_by_user))
 
-    return render_template('explore/top_albums.html', images_to_display=images_to_display,
-                           username=username)
+    return render_template('explore/top_albums.html', images_to_display=images_to_display)

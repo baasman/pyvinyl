@@ -16,28 +16,13 @@
 
     </style>
 {% endblock %}
-{#{% block content %}#}
-{#    <div class="container">#}
-{#        {% if user['discogs_info']['oauth_code'] %}#}
-{#            </br>#}
-{#        {% else %}#}
-{#            <p>It looks like you haven't been authenticated yet with Discogs. This will allow this app to generate#}
-{#                some cool statistics for you</p>#}
-{##}
-{#            <a href="{{ url_for('collection.discogs_setup', username=user['user'], tokens=client.get_authorize_url()) }}">#}
-{#                Get started with Discogs</a>#}
-{#            </br>#}
-{#        {% endif %}#}
-{#    </div>#}
-{##}
-{#{% endblock %}#}
 {% block collection_info %}
     {% include "flash.html" %}
     <div class="container">
 
         <div class="row">
             <div id="record_table">
-                {% if user['records'] %}
+                {% if current_user.records %}
                     {{ table }}
                 {% else %}
                     <p>You have not added any records yet</p>
@@ -50,17 +35,17 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a href="{{ url_for('collection.collection_page', page=0,
-                                        username=user['user'], albums_per_page=10) }}">10</a></li>
+                                        username=current_user.user, albums_per_page=10) }}">10</a></li>
                         <li><a href="{{ url_for('collection.collection_page', page=0,
-                                        username=user['user'], albums_per_page=20) }}">20</a></li>
+                                        username=current_user.user, albums_per_page=20) }}">20</a></li>
                         <li><a href="{{ url_for('collection.collection_page', page=0,
-                                        username=user['user'], albums_per_page=40) }}">40</a></li>
+                                        username=current_user.user, albums_per_page=40) }}">40</a></li>
                         <li><a href="{{ url_for('collection.collection_page', page=0,
-                                        username=user['user'], albums_per_page=60) }}">60</a></li>
+                                        username=current_user.user, albums_per_page=60) }}">60</a></li>
                     </ul>
                 </div>
                 {% for page in pages %}
-                    <a href="{{ url_for('collection.collection_page', page=page, username=user['user']) }}"
+                    <a href="{{ url_for('collection.collection_page', page=page, username=current_user.user) }}"
                        class="btn btn-default">{{ page + 1 }}</a>
                 {% endfor %}
             </div>

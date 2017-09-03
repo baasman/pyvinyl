@@ -33,26 +33,19 @@ def login():
 def register():
     reg_form = RegistrationForm()
     if request.method == 'POST' and reg_form.validate_on_submit():
-        user_obj = FlaskUser(email=reg_form.email.data,
-                             username=reg_form.username.data,
-                             lastfm_user=reg_form.lastfm_user.data,
-                             lastfm_password=reg_form.lastfm_password.data)
-        user_obj.set_password(reg_form.password.data)
+        user = User(email=reg_form.email.data,
+                    username=reg_form.username.data,
+                    lastfm_user=reg_form.lastfm_user.data)
+        user.lastfm_password = user.generate_lfm_hash(reg_form.lastfm_password.data)
+        user.password_hash = user.set_password(reg_form.password.data)
         try:
-            new_user = User(user=user_obj.username,
-                            email=user_obj.email,
-                            password_hash=user_obj.password_hash,
-                            lastfm_username=user_obj.lastfm_user,
-                            lastfm_password=user_obj.lastfm_password,
-                            )
-            n = new_user.save()
-            print(n)
-            login_user(user_obj)
-            if user_obj.lastfm_password and user_obj.lastfm_user:
-                return redirect(url_for('auth.lastfm_setup', username=user_obj.username))
+            n = user.save()
+            login_user(user)
+            if user.lastfm_password and user.lastfm_user:
+                return redirect(url_for('auth.lastfm_setup', username=user.username))
 
             flash('Thanks for registering')
-            return redirect(url_for('collection.collection_page', username=user_obj.username))
+            return redirect(url_for('collection.collection_page', username=user.username))
         except:
             print(sys.exc_info()[:2])
     return render_template('auth/register.html', form=reg_form)
@@ -87,7 +80,6 @@ def logout():
     username = request.args.get('username')
     tmp_files = os.listdir(os.path.join(capp.static_folder, 'tmp'))
     for file in tmp_files:
-        print(os.path.join(capp.static_folder, 'tmp', file))
         try:
             os.remove(os.path.join(capp.static_folder, 'tmp', file))
         except:
