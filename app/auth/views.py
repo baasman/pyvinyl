@@ -6,7 +6,6 @@ from flask import current_app as capp
 from flask_login import login_user, logout_user, login_required
 
 from app.models import User
-from app.user_management import FlaskUser
 from . import auth
 from .forms import LoginForm, RegistrationForm, LastfmAuthForm
 
@@ -17,11 +16,10 @@ import pylast
 def login():
     form = LoginForm()
 
-    if request.method == 'POST': # and form.validate_on_submit():
-        user = User.objects.get(user=form.user.data)
-        if user and User.validate_login(user['password_hash'], form.password.data):
-            user_obj = FlaskUser(user['user'])
-            login_user(user_obj)
+    if request.method == 'POST':
+        user = User.objects(user=form.user.data).first()
+        if user and user.validate_login(user['password_hash'], form.password.data):
+            login_user(user)
             flash('Logged in successfully. Happy scrobbling', category='success')
             return redirect(url_for('collection.collection_page', username=user['user']))
         else:
@@ -38,6 +36,7 @@ def register():
                     lastfm_username=reg_form.lastfm_user.data)
         user.lastfm_password = user.generate_lfm_hash(reg_form.lastfm_password.data)
         user.password_hash = user.set_password(reg_form.password.data)
+        print(user.password_hash)
         try:
             n = user.save()
             login_user(user)

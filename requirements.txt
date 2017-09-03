@@ -10,3 +10,5 @@ discogs_client>=2.2.1
 pylast>=1.5.4
 pymongo>=3.5.0
 wtforms>=2.1
+mongoengine
+flask_mongoengine

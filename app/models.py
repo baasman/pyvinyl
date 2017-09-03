@@ -68,7 +68,7 @@ class User(BaseUser):
         return check_password_hash(password_hash, password)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        return generate_password_hash(password)
 
 
     def __str__(self):
@@ -113,7 +113,9 @@ class Record(BaseRecord):
 if __name__ == '__main__':
 
     import mongoengine
-    mongoengine.connect('test')
+    # mongoengine.connect(host='mongodb://<baasman>:<Aa20!bbb4>@ds151163.mlab.com:51163/app')
+    mongoengine.connect(db='app', username='baasman', password='Aa20!bbb4',
+                        host='mongodb://@ds151163.mlab.com:51163/app')
     record = UserRecord(id=432343)
     tag = UserTag(id=432343, tag='sensual')
     boudey = User(email='boudeyz3@gmail.com',

@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from .decorators import setup_login_manager
-from .user_management import FlaskUser
 from .models import db
 
 from app.exceptions import not_found_error, server_error
