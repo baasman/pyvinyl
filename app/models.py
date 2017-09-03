@@ -93,9 +93,8 @@ class RecordPlay(db.EmbeddedDocument):
     user = db.StringField()
 
 class Record(BaseRecord):
-
     _id = db.IntField()
-    artists = db.ListField()
+    artists = db.ListField(db.StringField())
     year = db.IntField()
     total_plays = db.IntField(default=0)
     styles = db.ListField()
@@ -114,7 +113,7 @@ class Record(BaseRecord):
 if __name__ == '__main__':
 
     import mongoengine
-    mongoengine.connect('test2')
+    mongoengine.connect('test')
     record = UserRecord(id=432343)
     tag = UserTag(id=432343, tag='sensual')
     boudey = User(email='boudeyz3@gmail.com',

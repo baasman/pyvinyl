@@ -34,18 +34,18 @@ def register():
     reg_form = RegistrationForm()
     if request.method == 'POST' and reg_form.validate_on_submit():
         user = User(email=reg_form.email.data,
-                    username=reg_form.username.data,
-                    lastfm_user=reg_form.lastfm_user.data)
+                    user=reg_form.username.data,
+                    lastfm_username=reg_form.lastfm_user.data)
         user.lastfm_password = user.generate_lfm_hash(reg_form.lastfm_password.data)
         user.password_hash = user.set_password(reg_form.password.data)
         try:
             n = user.save()
             login_user(user)
-            if user.lastfm_password and user.lastfm_user:
-                return redirect(url_for('auth.lastfm_setup', username=user.username))
+            if user.lastfm_password and user.lastfm_username:
+                return redirect(url_for('auth.lastfm_setup', username=user.user))
 
             flash('Thanks for registering')
-            return redirect(url_for('collection.collection_page', username=user.username))
+            return redirect(url_for('collection.collection_page', username=user.user))
         except:
             print(sys.exc_info()[:2])
     return render_template('auth/register.html', form=reg_form)

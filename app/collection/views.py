@@ -50,11 +50,6 @@ def collection_page(username, page=0):
 def add_record():
 
     dclient = create_discogs_client(capp.config)
-
-    args = dict(request.args)
-    # username = args['username'][0]
-    #
-    # user = User.objects.get(user=username)
     form = AddRecordForm()
     if request.method == 'POST' and form.validate_on_submit():
         if form.discogs_id.data:
