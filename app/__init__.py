@@ -1,6 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager
+from .decorators import setup_login_manager
 from .user_management import FlaskUser
 from .models import db
 
@@ -8,16 +8,13 @@ from app.exceptions import not_found_error, server_error
 
 from config import app_config
 
-login_manager = LoginManager()
-
+login_manager = setup_login_manager()
 
 def create_app(config):
 
-    app = Flask(__name__, instance_relative_config=True, static_folder='static')
+    app = Flask(__name__, instance_relative_config=True)
 
     login_manager.init_app(app)
-    login_manager.login_message = 'You must be logged in to view this page'
-    login_manager.login_view = 'auth.login'
 
     Bootstrap(app)
 
