@@ -82,16 +82,11 @@
             </br>
                 {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-{#                    <a href="{{ url_for('collection.album_page', album_id=image_file[1], username=user['user']) }}">#}
-{#                        <img src="{{ url_for('static', filename='tmp/%s' % image_file[0]) }}"#}
-{#                             style="height: 150px; width:150px">#}
-{#                        <figcaption>plays: {{ image_file[2] }}</figcaption>#}
-{#                    </a>#}
-                    {{ show_image(image_file, user['user'], 'collection.album_page', caption=True) }}
+                        {{ show_image(image_file, current_user.user, 'collection.album_page', caption=True) }}
                     </div>
                 {% endfor %}
                 <div class="imgContainer">
-                    <a href="{{ url_for('explore.top_albums', username=user['user']) }}">
+                    <a href="{{ url_for('explore.top_albums', username=current_user.user) }}">
                         <button id="info_more" type="button" class="btn btn-info">View all</button>
                     </a>
                     </div>
@@ -104,7 +99,7 @@
             </br>
                 {% for genre in most_common_genres %}
                     <div class="imgGenreContainer" id="top_genres">
-                        <a href="{{ url_for('explore.top_in_genre', username=user['user'], genre=genre[0])}}">
+                        <a href="{{ url_for('explore.top_in_genre', username=current_user.user, genre=genre[0])}}">
                             <div class="box">
                                 <p id="boxtext">{{ genre[0] }}: {{ genre[1] }} </p>
                             </div>
@@ -112,7 +107,7 @@
                     </div>
                 {% endfor %}
                 <div class="imgGenreContainer">
-                    <a href="{{ url_for('explore.top_genres', username=user['user']) }}">
+                    <a href="{{ url_for('explore.top_genres', username=current_user.user) }}">
                         <button id="info_more" type="button" class="btn btn-info">View all</button>
                     </a>
                 </div>
@@ -124,7 +119,7 @@
             </br>
                 {% for tag in most_common_tags %}
                     <div class="imgTagContainer" id="top_tags">
-                        <a href="{{ url_for('explore.top_in_tag', username=user['user'], tag=tag['_id']) }}">
+                        <a href="{{ url_for('explore.top_in_tag', username=current_user.user, tag=tag['_id']) }}">
                             <div class="box">
                                 <p id="boxtext">{{ tag['_id'] }}: {{ tag['count'] }} </p>
                             </div>
@@ -132,7 +127,7 @@
                     </div>
                 {% endfor %}
                 <div class="imgTagContainer">
-                    <a href="{{ url_for('explore.top_tags', username=user['user']) }}">
+                    <a href="{{ url_for('explore.top_tags', username=current_user.user) }}">
                         <button id="info_more" type="button" class="btn btn-info">View all</button>
                     </a>
                 </div>

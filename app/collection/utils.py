@@ -41,7 +41,7 @@ def add_album(discogs_id, form, dclient, username, user, from_sequence=False):
                 artist_id = artists[0].id
 
                 if not styles:
-                    styles = ''
+                    styles = ['']
                 else:
                     styles = [i for i in styles]
 

@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 import pylast
 
-# TODO: change this name. interferes with mongo collection name
+# TODO: remove this unnecessary class with mongo User model
 class FlaskUser():
     def __init__(self, username, email=None,
                  lastfm_user=None, lastfm_password=None):

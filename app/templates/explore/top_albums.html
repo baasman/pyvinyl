@@ -34,7 +34,7 @@
             </br>
                 {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-                        {{ show_image(image_file, username, 'collection.album_page', caption=False) }}
+                        {{ show_image(image_file, current_user.user, 'collection.album_page', caption=False) }}
                     </div>
                 {% endfor %}
         </div>

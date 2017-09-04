@@ -32,7 +32,7 @@
         <p class="lead">Scrobble your records!</p>
           {% if current_user.is_authenticated %}
                 <p><a class="btn btn-lg btn-success" href="{{ url_for('collection.collection_page',
-                    username=current_user['username']) }}"
+                    username=current_user.user) }}"
                     role="button">Go to your collection</a></p>
           {% else %}
                 <p><a class="btn btn-lg btn-success" href="{{ url_for('auth.register') }}"
@@ -57,13 +57,12 @@
               <div class="col-lg-12">
                 </br>
                 <h6>RECENTLY RECORDED</h6>
-{#              TODO: wrong url for missing images#}
                   {% for image_file in images_to_display %}
                     <div class="imgContainer" id="top_albums">
-                        {% if username != 'anonymous' %}
-                            {{ show_image(image_file, user['user'], 'collection.album_page') }}
+                        {% if current_user.is_authenticated %}
+                            {{ show_image(image_file, current_user.user, 'collection.album_page') }}
                         {% else %}
-                            {{ show_image(image_file, user['user'], 'auth.register') }}
+                            {{ show_image(image_file, current_user.user, 'auth.register') }}
                         {% endif %}
                     </div>
                 {% endfor %}

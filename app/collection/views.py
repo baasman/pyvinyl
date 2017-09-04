@@ -22,7 +22,6 @@ from .tables import CollectionTable
 @collection.route('/u/<username>/collection/p/<int:page>')
 @login_required
 def collection_page(username, page=0):
-
     ALBUMS_PER_PAGE = request.args.get('albums_per_page')
     if not ALBUMS_PER_PAGE:
         ALBUMS_PER_PAGE = 10
@@ -30,12 +29,10 @@ def collection_page(username, page=0):
         ALBUMS_PER_PAGE = int(ALBUMS_PER_PAGE)
 
     dclient = create_discogs_client(capp.config)
-    # user = User.get_user(username=username)
-    user = User.objects.get(user=username)
-    df = get_items(user, for_table=False)
+    df = get_items(current_user, for_table=False)
     df = pd.DataFrame(df, columns=['Title', 'Artist', 'Year', 'Genre', 'Style',
                                         'TimesPlayed', 'DateAdded'])
-    items = convert_df_to_items_and_sort(df, user=user, sort_on='DateAdded')
+    items = convert_df_to_items_and_sort(df, user=current_user, sort_on='DateAdded')
     n_pages = list(range(math.ceil(len(items) / ALBUMS_PER_PAGE)))
 
     sub_items = items[ALBUMS_PER_PAGE * page : (page * ALBUMS_PER_PAGE) + ALBUMS_PER_PAGE]
@@ -44,8 +41,8 @@ def collection_page(username, page=0):
         table = CollectionTable(sub_items)
     else:
         table = None
-    return render_template('collection/collection.html', username=username, user=user,
-                           client=dclient, table=table, pages=n_pages)
+    return render_template('collection/collection.html', client=dclient, table=table,
+                           pages=n_pages)
 
 
 @collection.route('/add_record/', methods=['GET', 'POST'])
@@ -53,22 +50,17 @@ def collection_page(username, page=0):
 def add_record():
 
     dclient = create_discogs_client(capp.config)
-
-    args = dict(request.args)
-    username = args['username'][0]
-
-    user = User.objects.get(user=username)
     form = AddRecordForm()
     if request.method == 'POST' and form.validate_on_submit():
         if form.discogs_id.data:
             discogs_id = int(form.discogs_id.data)
-            add_album(discogs_id, form, dclient, username, user)
+            add_album(discogs_id, form, dclient, current_user.user, current_user)
         elif form.collection_link.data:
             all_ids = get_all_ids(form.collection_link.data)
             for discogs_id in all_ids:
-                add_album(discogs_id, form, dclient, username, user, from_sequence=True)
-        return redirect(url_for('collection.collection_page', username=username,
-                                user=user))
+                add_album(discogs_id, form, dclient, current_user.user, current_user, from_sequence=True)
+        return redirect(url_for('collection.collection_page', username=current_user.user,
+                                user=current_user))
     return render_template('collection/add_record.html', form=form)
 
 
